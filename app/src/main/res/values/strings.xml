@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Phoenix</string>
+    <string name="app_tagline">Renais plus fort que jamais</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_workout">Sport</string>
+    <string name="nav_coach">Coach IA</string>
+    <string name="nav_nutrition">Nutrition</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting_morning">Bonjour</string>
+    <string name="dashboard_greeting_afternoon">Bonsoir</string>
+    <string name="dashboard_greeting_evening">Bonne nuit</string>
+    <string name="dashboard_streak_days">jours consécutifs</string>
+    <string name="dashboard_streak_title">Streak actuel 🔥</string>
+    <string name="dashboard_today_summary">Résumé d\'aujourd\'hui</string>
+    <string name="dashboard_no_workout_today">Aucune séance aujourd\'hui — c\'est le moment !</string>
+    <string name="dashboard_calories_today">Calories aujourd\'hui</string>
+    <string name="dashboard_workouts_today">Séances</string>
+    <string name="dashboard_quick_add_workout">+ Séance</string>
+    <string name="dashboard_quick_add_meal">+ Repas</string>
+    <string name="dashboard_latest_achievement">Dernier badge débloqué !</string>
+    <string name="dashboard_level">Niveau %1$d</string>
+    <string name="dashboard_xp">%1$d XP</string>
+
+    <!-- Workout -->
+    <string name="workout_title">Mes séances</string>
+    <string name="workout_add">Nouvelle séance</string>
+    <string name="workout_today">Aujourd\'hui</string>
+    <string name="workout_history">Historique</string>
+    <string name="workout_sport_library">Bibliothèque de sports</string>
+    <string name="workout_no_sessions">Aucune séance enregistrée</string>
+    <string name="workout_no_sessions_today">Pas encore de séance aujourd\'hui</string>
+    <string name="workout_duration">Durée</string>
+    <string name="workout_intensity">Intensité</string>
+    <string name="workout_notes">Notes</string>
+    <string name="workout_exercises">Exercices</string>
+    <string name="workout_add_exercise">Ajouter un exercice</string>
+    <string name="workout_sets">Séries</string>
+    <string name="workout_reps">Répétitions</string>
+    <string name="workout_weight_kg">Poids (kg)</string>
+    <string name="workout_duration_min">Durée (min)</string>
+    <string name="workout_distance_km">Distance (km)</string>
+    <string name="workout_recurrence">Récurrence</string>
+    <string name="workout_recurrence_none">Unique</string>
+    <string name="workout_recurrence_daily">Quotidien</string>
+    <string name="workout_recurrence_weekly">Hebdomadaire</string>
+    <string name="workout_recurrence_custom">Personnalisé</string>
+    <string name="workout_save">Enregistrer la séance</string>
+    <string name="workout_start_time">Heure de début</string>
+    <string name="workout_end_time">Heure de fin</string>
+    <string name="workout_select_sport">Choisir un sport</string>
+    <string name="workout_calories_burned">Calories brûlées (estimées)</string>
+    <string name="workout_optional">(optionnel)</string>
+
+    <!-- Sport Library -->
+    <string name="sport_library_title">Mes sports</string>
+    <string name="sport_add">Créer un sport</string>
+    <string name="sport_name">Nom du sport</string>
+    <string name="sport_category">Catégorie</string>
+    <string name="sport_category_cardio">Cardio</string>
+    <string name="sport_category_strength">Musculation</string>
+    <string name="sport_category_flexibility">Flexibilité</string>
+    <string name="sport_category_team">Sport collectif</string>
+    <string name="sport_category_martial">Arts martiaux</string>
+    <string name="sport_category_water">Sport aquatique</string>
+    <string name="sport_category_cycling">Cyclisme</string>
+    <string name="sport_category_other">Autre</string>
+    <string name="sport_save">Enregistrer</string>
+    <string name="sport_delete">Supprimer</string>
+
+    <!-- Nutrition -->
+    <string name="nutrition_title">Nutrition</string>
+    <string name="nutrition_add_meal">Ajouter un repas</string>
+    <string name="nutrition_total_calories">Total calories</string>
+    <string name="nutrition_kcal">kcal</string>
+    <string name="nutrition_breakfast">Petit-déjeuner</string>
+    <string name="nutrition_lunch">Déjeuner</string>
+    <string name="nutrition_dinner">Dîner</string>
+    <string name="nutrition_snack">Collation</string>
+    <string name="nutrition_search_food">Rechercher un aliment…</string>
+    <string name="nutrition_add_manually">Ajouter manuellement</string>
+    <string name="nutrition_food_name">Nom de l\'aliment</string>
+    <string name="nutrition_calories">Calories (kcal)</string>
+    <string name="nutrition_protein">Protéines (g)</string>
+    <string name="nutrition_carbs">Glucides (g)</string>
+    <string name="nutrition_fat">Lipides (g)</string>
+    <string name="nutrition_quantity">Quantité / portion</string>
+    <string name="nutrition_no_meals">Aucun repas enregistré aujourd\'hui</string>
+    <string name="nutrition_searching">Recherche en cours…</string>
+    <string name="nutrition_no_results">Aucun résultat — essaie la saisie manuelle</string>
+    <string name="nutrition_save_food">Ajouter l\'aliment</string>
+    <string name="nutrition_weekly_chart">Apport calorique cette semaine</string>
+
+    <!-- Stats -->
+    <string name="stats_title">Statistiques</string>
+    <string name="stats_weekly_workouts">Séances cette semaine</string>
+    <string name="stats_monthly_workouts">Séances ce mois</string>
+    <string name="stats_total_workouts">Total séances</string>
+    <string name="stats_best_streak">Meilleur streak</string>
+    <string name="stats_total_volume">Volume total soulevé</string>
+    <string name="stats_frequency">Fréquence d\'entraînement</string>
+    <string name="stats_weight_trend">Évolution du poids</string>
+    <string name="stats_no_data">Pas encore de données — commence à t\'entraîner !</string>
+    <string name="stats_days_unit">jours</string>
+    <string name="stats_kg_unit">kg</string>
+    <string name="stats_sessions_unit">séances</string>
+    <string name="stats_period_week">Semaine</string>
+    <string name="stats_period_month">Mois</string>
+    <string name="stats_period_year">Année</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mon profil</string>
+    <string name="profile_edit">Modifier le profil</string>
+    <string name="profile_name">Nom</string>
+    <string name="profile_weight_kg">Poids (kg)</string>
+    <string name="profile_height_cm">Taille (cm)</string>
+    <string name="profile_objective">Objectif</string>
+    <string name="profile_obj_weight_loss">Perte de poids</string>
+    <string name="profile_obj_muscle_gain">Prise de masse</string>
+    <string name="profile_obj_endurance">Endurance</string>
+    <string name="profile_obj_fitness">Remise en forme</string>
+    <string name="profile_obj_flexibility">Flexibilité</string>
+    <string name="profile_level_progress">Progression niveau</string>
+    <string name="profile_achievements">Badges &amp; Achievements</string>
+    <string name="profile_settings">Paramètres</string>
+    <string name="profile_language">Langue</string>
+    <string name="profile_notifications">Notifications</string>
+    <string name="profile_save">Sauvegarder</string>
+    <string name="profile_sign_in_google">Connexion Google (sync cloud)</string>
+    <string name="profile_signed_in_as">Connecté en tant que</string>
+
+    <!-- Achievements -->
+    <string name="achievements_title">Mes badges</string>
+    <string name="achievements_unlocked">Débloqués</string>
+    <string name="achievements_locked">Verrouillés</string>
+    <string name="achievements_xp">+%1$d XP</string>
+
+    <!-- Common -->
+    <string name="common_save">Enregistrer</string>
+    <string name="common_cancel">Annuler</string>
+    <string name="common_delete">Supprimer</string>
+    <string name="common_edit">Modifier</string>
+    <string name="common_add">Ajouter</string>
+    <string name="common_close">Fermer</string>
+    <string name="common_today">Aujourd\'hui</string>
+    <string name="common_yesterday">Hier</string>
+    <string name="common_days_ago">Il y a %1$d jours</string>
+    <string name="common_error_network">Erreur réseau — vérifie ta connexion</string>
+    <string name="common_loading">Chargement…</string>
+    <string name="common_success">Enregistré !</string>
+    <string name="common_min">min</string>
+    <string name="common_km">km</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_workout">Rappels de séance</string>
+    <string name="notif_channel_achievement">Badges débloqués</string>
+    <string name="notif_workout_reminder_title">💪 C\'est l\'heure de t\'entraîner !</string>
+    <string name="notif_workout_reminder_body">Ta séance de %1$s t\'attend. Allez, tu peux le faire !</string>
+    <string name="notif_achievement_title">🏆 Badge débloqué !</string>
+
+    <!-- Days of week -->
+    <string name="day_monday">Lundi</string>
+    <string name="day_tuesday">Mardi</string>
+    <string name="day_wednesday">Mercredi</string>
+    <string name="day_thursday">Jeudi</string>
+    <string name="day_friday">Vendredi</string>
+    <string name="day_saturday">Samedi</string>
+    <string name="day_sunday">Dimanche</string>
+</resources>
