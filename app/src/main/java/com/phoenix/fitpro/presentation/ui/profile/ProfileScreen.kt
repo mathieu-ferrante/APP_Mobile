@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -357,21 +358,10 @@ fun ProfileScreen(
                         color = TextSecondary
                     )
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("fr" to "\uD83C\uDDEB\uD83C\uDDF7 Fran\u00e7ais", "en" to "\uD83C\uDDEC\uD83C\uDDE7 English")
-                            .forEach { (code, label) ->
-                                val sel = code == language
-                                FilterChip(
-                                    selected = sel,
-                                    onClick = { language = code },
-                                    label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = ElectricBlueAlpha15,
-                                        selectedLabelColor = ElectricBlueLight
-                                    )
-                                )
-                            }
-                    }
+                    LanguageDropdown(
+                        selectedCode = language,
+                        onLanguageSelected = { language = it }
+                    )
 
                     Spacer(Modifier.height(12.dp))
 
@@ -451,61 +441,20 @@ fun ProfileScreen(
                         )
                     }
                     Spacer(Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val currentLang = state.profile.preferredLanguage
-                        // French Button
-                        val isFr = currentLang.equals("fr", ignoreCase = true)
-                        Button(
-                            onClick = {
-                                viewModel.saveProfile(
-                                    name = state.profile.name,
-                                    weightKg = state.profile.weightKg,
-                                    heightCm = state.profile.heightCm,
-                                    objective = state.profile.objectiveType,
-                                    language = "fr",
-                                    notificationsEnabled = state.profile.notificationsEnabled
-                                )
-                                LanguageHelper.setAppLanguage(context, "fr")
-                            },
-                            modifier = Modifier.weight(1f).height(44.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isFr) NeonGreen else DarkSurfaceVariant,
-                                contentColor = if (isFr) Color.Black else TextPrimary
-                            ),
-                            border = if (isFr) null else BorderStroke(1.dp, DarkOutline)
-                        ) {
-                            Text("🇫🇷 Français", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    LanguageDropdown(
+                        selectedCode = state.profile.preferredLanguage,
+                        onLanguageSelected = { selectedLanguage ->
+                            viewModel.saveProfile(
+                                name = state.profile.name,
+                                weightKg = state.profile.weightKg,
+                                heightCm = state.profile.heightCm,
+                                objective = state.profile.objectiveType,
+                                language = selectedLanguage,
+                                notificationsEnabled = state.profile.notificationsEnabled
+                            )
+                            LanguageHelper.setAppLanguage(context, selectedLanguage)
                         }
-
-                        // English Button
-                        val isEn = currentLang.equals("en", ignoreCase = true)
-                        Button(
-                            onClick = {
-                                viewModel.saveProfile(
-                                    name = state.profile.name,
-                                    weightKg = state.profile.weightKg,
-                                    heightCm = state.profile.heightCm,
-                                    objective = state.profile.objectiveType,
-                                    language = "en",
-                                    notificationsEnabled = state.profile.notificationsEnabled
-                                )
-                                LanguageHelper.setAppLanguage(context, "en")
-                            },
-                            modifier = Modifier.weight(1f).height(44.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isEn) NeonGreen else DarkSurfaceVariant,
-                                contentColor = if (isEn) Color.Black else TextPrimary
-                            ),
-                            border = if (isEn) null else BorderStroke(1.dp, DarkOutline)
-                        ) {
-                            Text("🇬🇧 English", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
-                    }
+                    )
                 }
             }
 
@@ -553,6 +502,59 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(12.dp))
 
+        }
+    }
+}
+
+@Composable
+private fun LanguageDropdown(
+    selectedCode: String,
+    onLanguageSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLanguage = LanguageHelper.supportedLanguages.firstOrNull {
+        it.code.equals(selectedCode, ignoreCase = true)
+    } ?: LanguageHelper.supportedLanguages.first()
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, DarkOutline),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+        ) {
+            Text(
+                text = "${selectedLanguage.flag} ${selectedLanguage.name}",
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Start,
+                color = TextPrimary
+            )
+            Icon(Icons.Rounded.ExpandMore, contentDescription = "Choisir une langue", tint = TextSecondary)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(DarkSurface)
+        ) {
+            LanguageHelper.supportedLanguages.forEach { language ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "${language.flag} ${language.name}",
+                            color = if (language.code.equals(selectedLanguage.code, ignoreCase = true)) NeonGreen else TextPrimary
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onLanguageSelected(language.code)
+                    },
+                    trailingIcon = if (language.code.equals(selectedLanguage.code, ignoreCase = true)) {
+                        { Icon(Icons.Rounded.Check, contentDescription = null, tint = NeonGreen) }
+                    } else null
+                )
+            }
         }
     }
 }
