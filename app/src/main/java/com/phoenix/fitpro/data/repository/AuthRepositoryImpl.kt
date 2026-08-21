@@ -10,6 +10,7 @@ import com.phoenix.fitpro.domain.repository.ProgramRepository
 import com.phoenix.fitpro.domain.repository.UserRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -106,6 +107,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun signOut() {
+        FirebaseAuth.getInstance().signOut()
         // Save current profile state before signing out
         val activeEmail = _currentEmail.value
         if (activeEmail != null) {
