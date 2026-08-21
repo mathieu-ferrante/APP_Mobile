@@ -1,5 +1,7 @@
 package com.phoenix.fitpro.presentation.ui.coach
 
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.phoenix.fitpro.domain.ai.*
@@ -29,6 +32,7 @@ import com.phoenix.fitpro.presentation.ui.workout.fitMotionTextFieldColors
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +40,58 @@ fun CoachProgramScreen(
     viewModel: CoachViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var isSpeaking by remember { mutableStateOf(false) }
+    val textToSpeech = remember(context) { TextToSpeech(context, null) }
+
+    DisposableEffect(textToSpeech) {
+        textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                isSpeaking = true
+            }
+
+            override fun onDone(utteranceId: String?) {
+                isSpeaking = false
+            }
+
+            override fun onError(utteranceId: String?) {
+                isSpeaking = false
+            }
+        })
+        textToSpeech.setSpeechRate(0.94f)
+        textToSpeech.setPitch(0.98f)
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
+
+    fun speakMessage(message: String) {
+        if (isSpeaking) {
+            textToSpeech.stop()
+            isSpeaking = false
+            return
+        }
+        val languageResult = textToSpeech.setLanguage(Locale.FRENCH)
+        if (languageResult == TextToSpeech.LANG_MISSING_DATA || languageResult == TextToSpeech.LANG_NOT_SUPPORTED) return
+        textToSpeech.voices
+            .orEmpty()
+            .filter { it.locale.language == Locale.FRENCH.language }
+            .maxWithOrNull(
+                compareBy<android.speech.tts.Voice>(
+                    { it.locale.country == Locale.FRANCE.country },
+                    { it.quality },
+                    { !it.isNetworkConnectionRequired }
+                )
+            )
+            ?.let(textToSpeech::setVoice)
+        textToSpeech.speak(
+            message.toSpeechText(),
+            TextToSpeech.QUEUE_FLUSH,
+            null,
+            UUID.randomUUID().toString()
+        )
+    }
 
     if (state.showGeneratorDialog) {
         ProgramGeneratorDialog(
@@ -138,9 +194,11 @@ fun CoachProgramScreen(
                     messages = state.chatMessages,
                     input = state.chatInput,
                     isThinking = state.isThinking,
+                    isSpeaking = isSpeaking,
                     onInputChange = viewModel::setChatInput,
                     onSendMessage = { viewModel.sendChatMessage() },
-                    onQuickActionClick = { viewModel.sendChatMessage(it) }
+                    onQuickActionClick = { viewModel.sendChatMessage(it) },
+                    onSpeakMessage = ::speakMessage
                 )
             }
         }
@@ -552,11 +610,21 @@ private fun CoachChatContent(
     messages: List<ChatMessage>,
     input: String,
     isThinking: Boolean,
+    isSpeaking: Boolean,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
-    onQuickActionClick: (String) -> Unit
+    onQuickActionClick: (String) -> Unit,
+    onSpeakMessage: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
+    var voiceRepliesEnabled by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(messages.lastOrNull()?.id, voiceRepliesEnabled) {
+        val latestMessage = messages.lastOrNull()
+        if (voiceRepliesEnabled && latestMessage?.isFromCoach == true) {
+            onSpeakMessage(latestMessage.content)
+        }
+    }
 
     LaunchedEffect(messages.size, isThinking) {
         val targetIndex = messages.size + if (isThinking) 1 else 0
@@ -573,7 +641,12 @@ private fun CoachChatContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(messages) { msg ->
-                ChatBubble(msg = msg, onQuickActionClick = onQuickActionClick)
+                ChatBubble(
+                    msg = msg,
+                    isSpeaking = isSpeaking,
+                    onQuickActionClick = onQuickActionClick,
+                    onSpeakMessage = onSpeakMessage
+                )
             }
             if (isThinking) {
                 item {
@@ -646,6 +719,28 @@ private fun CoachChatContent(
                         Icon(Icons.Rounded.Send, null, tint = Color.Black, modifier = Modifier.size(20.dp))
                     }
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.RecordVoiceOver,
+                        contentDescription = null,
+                        tint = if (voiceRepliesEnabled) NeonGreen else TextSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("Lire les réponses automatiquement", color = TextSecondary, fontSize = 12.sp)
+                    Spacer(Modifier.width(4.dp))
+                    Switch(
+                        checked = voiceRepliesEnabled,
+                        onCheckedChange = { voiceRepliesEnabled = it },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = NeonGreen)
+                    )
+                }
             }
         }
     }
@@ -654,7 +749,9 @@ private fun CoachChatContent(
 @Composable
 private fun ChatBubble(
     msg: ChatMessage,
-    onQuickActionClick: (String) -> Unit
+    isSpeaking: Boolean,
+    onQuickActionClick: (String) -> Unit,
+    onSpeakMessage: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -691,6 +788,19 @@ private fun ChatBubble(
                     modifier = Modifier.padding(12.dp)
                 )
             }
+            if (msg.isFromCoach) {
+                IconButton(
+                    onClick = { onSpeakMessage(msg.content) },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isSpeaking) Icons.Rounded.Stop else Icons.Rounded.VolumeUp,
+                        contentDescription = if (isSpeaking) "Arrêter la lecture" else "Écouter la réponse",
+                        tint = if (isSpeaking) AccentOrange else NeonGreen,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
 
         // Quick action chips below coach message
@@ -712,6 +822,10 @@ private fun ChatBubble(
         }
     }
 }
+
+private fun String.toSpeechText(): String = replace(Regex("[*_`#>]"), "")
+    .replace(Regex("\\s+"), " ")
+    .trim()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. Header & Dialog Components
