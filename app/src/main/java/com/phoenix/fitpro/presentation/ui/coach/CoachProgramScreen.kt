@@ -74,6 +74,17 @@ fun CoachProgramScreen(
         }
         val languageResult = textToSpeech.setLanguage(Locale.FRENCH)
         if (languageResult == TextToSpeech.LANG_MISSING_DATA || languageResult == TextToSpeech.LANG_NOT_SUPPORTED) return
+        textToSpeech.voices
+            .orEmpty()
+            .filter { it.locale.language == Locale.FRENCH.language }
+            .maxWithOrNull(
+                compareBy<android.speech.tts.Voice>(
+                    { it.locale.country == Locale.FRANCE.country },
+                    { it.quality },
+                    { !it.isNetworkConnectionRequired }
+                )
+            )
+            ?.let(textToSpeech::setVoice)
         textToSpeech.speak(
             message.toSpeechText(),
             TextToSpeech.QUEUE_FLUSH,
