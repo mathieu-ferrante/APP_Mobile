@@ -50,6 +50,7 @@ android {
         }
         debug {
             applicationIdSuffix = ".phoenix.debug"
+            versionNameSuffix = "-security"
             isDebuggable = true
         }
     }
