@@ -46,7 +46,7 @@ fun ProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.saveSuccess) {
         if (state.saveSuccess) {
-            snackbarHostState.showSnackbar("Profil enregistrÃ© !")
+            snackbarHostState.showSnackbar("Profil enregistré !")
             viewModel.clearSaveSuccess()
         }
     }
@@ -194,17 +194,17 @@ fun ProfileScreen(
                         modifier = Modifier.size(40.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(if (state.profile.email != null) "âœ‰ï¸" else "ðŸ‘¤", fontSize = 18.sp)
+                            Text(if (state.profile.email != null) "✉️" else "👤", fontSize = 18.sp)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         if (state.profile.email != null) {
-                            Text("Compte connectÃ©", style = MaterialTheme.typography.labelSmall, color = NeonGreen, fontWeight = FontWeight.Bold)
+                            Text("Compte connecté", style = MaterialTheme.typography.labelSmall, color = NeonGreen, fontWeight = FontWeight.Bold)
                             Text(state.profile.email!!, style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                         } else {
-                            Text("Mode InvitÃ©", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                            Text("Non connectÃ©", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                            Text("Mode Invité", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            Text("Non connecté", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     if (state.profile.email != null) {
@@ -220,7 +220,7 @@ fun ProfileScreen(
                         ) {
                             Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("DÃ©connecter", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Déconnecter", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     } else {
                         // Not connected â†’ show login button
@@ -441,7 +441,7 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("ðŸŒ", fontSize = 20.sp)
+                        Text("🌐", fontSize = 20.sp)
                         Spacer(Modifier.width(10.dp))
                         Text(
                             text = "Langue de l'application / Language",
@@ -478,7 +478,7 @@ fun ProfileScreen(
                             ),
                             border = if (isFr) null else BorderStroke(1.dp, DarkOutline)
                         ) {
-                            Text("ðŸ‡«ðŸ‡· FranÃ§ais", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("🇫🇷 Français", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
 
                         // English Button
@@ -503,7 +503,7 @@ fun ProfileScreen(
                             ),
                             border = if (isEn) null else BorderStroke(1.dp, DarkOutline)
                         ) {
-                            Text("ðŸ‡¬ðŸ‡§ English", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("🇬🇧 English", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
                 }
@@ -530,7 +530,7 @@ fun ProfileScreen(
                         modifier = Modifier.size(44.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("ðŸ†", fontSize = 22.sp)
+                            Text("🏆", fontSize = 22.sp)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
@@ -542,7 +542,7 @@ fun ProfileScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            "${state.unlockedCount} dÃ©bloquÃ©(s) sur ${state.achievements.size}",
+                            "${state.unlockedCount} débloqué(s) sur ${state.achievements.size}",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -627,7 +627,7 @@ private fun AuthAccountDialog(
         containerColor = DarkSurface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("âœ‰ï¸ Compte & Synchronisation", style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
+                Text("✉️ Compte & Synchronisation", style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -638,7 +638,7 @@ private fun AuthAccountDialog(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
-                    "Connectez-vous avec votre adresse email pour sauvegarder vos sÃ©ances, votre programme Coach IA et votre nutrition par profil.",
+                    "Connectez-vous avec votre adresse email pour sauvegarder vos séances, votre programme Coach IA et votre nutrition par profil.",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -686,7 +686,7 @@ private fun AuthAccountDialog(
                 // 3. Saved accounts list
                 if (state.savedAccounts.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
-                    Text("Comptes enregistrÃ©s sur cet appareil", style = MaterialTheme.typography.labelMedium, color = ElectricBlueLight, fontWeight = FontWeight.SemiBold)
+                    Text("Comptes enregistrés sur cet appareil", style = MaterialTheme.typography.labelMedium, color = ElectricBlueLight, fontWeight = FontWeight.SemiBold)
 
                     state.savedAccounts.forEach { acc ->
                         val isCurrent = acc.email.equals(state.profile.email, ignoreCase = true)
@@ -710,7 +710,7 @@ private fun AuthAccountDialog(
                                     modifier = Modifier.size(32.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
-                                        Text(if (isCurrent) "âœ…" else "ðŸ‘¤", fontSize = 14.sp)
+                                        Text(if (isCurrent) "✅" else "👤", fontSize = 14.sp)
                                     }
                                 }
                                 Spacer(Modifier.width(10.dp))
@@ -755,7 +755,7 @@ private fun AuthAccountDialog(
                     ) {
                         Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Se dÃ©connecter (Mode InvitÃ©)", fontSize = 12.sp)
+                        Text("Se déconnecter (Mode Invité)", fontSize = 12.sp)
                     }
                 }
             }
