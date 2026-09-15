@@ -1,5 +1,6 @@
 ﻿package com.phoenix.fitpro.di
 
+import com.phoenix.fitpro.BuildConfig
 import com.phoenix.fitpro.data.remote.OpenFoodFactsApi
 import dagger.Module
 import dagger.Provides
@@ -20,11 +21,23 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
+            // Open Food Facts exige un User-Agent identifiant ; les clients
+            // anonymes generiques sont limites en priorite.
+            .addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("User-Agent", OpenFoodFactsApi.USER_AGENT)
+                        .build()
+                )
+            }
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                // Le corps complet ne sert qu'au debogage et fait fuiter les
+                // reponses dans logcat en production.
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
+                else HttpLoggingInterceptor.Level.NONE
             })
             .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
             .build()
     }
 

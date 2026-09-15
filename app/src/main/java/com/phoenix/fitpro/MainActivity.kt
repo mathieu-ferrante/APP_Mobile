@@ -1,6 +1,7 @@
 package com.phoenix.fitpro
 
 import android.os.Bundle
+import java.util.Locale
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.phoenix.fitpro.domain.repository.SyncRepository
 import com.phoenix.fitpro.presentation.navigation.PhoenixNavHost
 import com.phoenix.fitpro.presentation.theme.PhoenixTheme
+import com.phoenix.fitpro.presentation.util.LanguageHelper
 import com.phoenix.fitpro.presentation.ui.auth.AuthScreen
 import com.phoenix.fitpro.presentation.ui.auth.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +28,17 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Aligne la locale JVM sur celle reellement retenue pour les ressources.
+        // Sans cela, Locale.getDefault() renvoie la langue du SYSTEME alors que
+        // l'interface suit la langue choisie dans l'application : la logique
+        // metier (conseils du coach, libelles nutrition) repondait en anglais
+        // pendant que l'ecran affichait du francais.
+        // LanguageHelper connait le choix explicite de l'utilisateur (LocaleManager
+        // sur Android 13+, AppCompatDelegate en dessous) et retombe sur la locale
+        // systeme a defaut. Lire la config des ressources directement ecraserait
+        // ce choix sur les versions ou il n'est pas reporte dans la configuration.
+        Locale.setDefault(Locale(LanguageHelper.getCurrentLanguage(this)))
 
         setContent {
             PhoenixTheme {

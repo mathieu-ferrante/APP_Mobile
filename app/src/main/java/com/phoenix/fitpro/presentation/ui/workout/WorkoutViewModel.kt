@@ -131,9 +131,16 @@ class WorkoutViewModel @Inject constructor(
                 // Check achievements
                 checkAchievements()
 
-                _addState.update { it.copy(isSaving = false, saveSuccess = true) }
-                // Reset form
-                _addState.value = AddWorkoutUiState(sports = state.sports, selectedSport = state.sports.firstOrNull())
+                // Reinitialise le formulaire en CONSERVANT saveSuccess : c'est ce
+                // drapeau que l'ecran observe pour se fermer. Le remettre a false
+                // juste apres l'avoir pose empechait la fermeture, car StateFlow
+                // fusionne deux emissions successives et le collecteur ne voyait
+                // que la derniere valeur.
+                _addState.value = AddWorkoutUiState(
+                    sports = state.sports,
+                    selectedSport = state.sports.firstOrNull(),
+                    saveSuccess = true
+                )
 
             } catch (e: Exception) {
                 _addState.update { it.copy(isSaving = false, error = e.message) }

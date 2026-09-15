@@ -8,6 +8,7 @@ import com.phoenix.fitpro.domain.model.FoodItem
 import com.phoenix.fitpro.domain.model.MealEntry
 import com.phoenix.fitpro.domain.model.MealType
 import com.phoenix.fitpro.domain.model.StapleFoodDatabase
+import com.phoenix.fitpro.domain.repository.FoodSearchOutcome
 import com.phoenix.fitpro.domain.repository.NutritionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -56,44 +57,44 @@ class NutritionRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun searchFoodOnline(query: String): List<FoodItem> {
+    override suspend fun searchFoodOnline(query: String): FoodSearchOutcome {
         val results = mutableListOf<FoodItem>()
 
-        // 1. Instant match from verified staple foods database
-        val localMatches = StapleFoodDatabase.search(query)
-        results.addAll(localMatches)
+        // 1. Correspondances immediates depuis la base d'aliments courants.
+        //    Toujours disponibles, meme hors ligne ou si Open Food Facts limite.
+        results.addAll(StapleFoodDatabase.search(query))
 
-        // 2. Open Food Facts API for branded / additional products
+        // 2. Open Food Facts pour les produits de marque.
+        var remoteFailed = false
         try {
             val isEn = java.util.Locale.getDefault().language.equals("en", ignoreCase = true)
-            val lang = if (isEn) "en" else "fr"
-            val country = if (isEn) "us" else "fr"
-            val response = api.searchProducts(query = query, lang = lang, country = country)
-            val remoteMatches = response.products
-                .filter { it.displayName.isNotBlank() && it.displayName != "Aliment inconnu" && it.displayName != "Unknown Food" }
-                .map { product ->
-                    FoodItem(
-                        name = product.displayName,
-                        quantity = product.quantity ?: "100g",
-                        calories = product.caloriesPer100g,
-                        proteinG = product.proteinPer100g,
-                        carbsG = product.carbsPer100g,
-                        fatG = product.fatPer100g,
-                        openFoodFactsId = product.id
-                    )
+            val response = api.searchProducts(query = query, lang = if (isEn) "en" else "fr")
+            response.products
+                .filter { it.isUsable }
+                .forEach { product ->
+                    if (results.none { it.name.equals(product.displayName, ignoreCase = true) }) {
+                        results.add(
+                            FoodItem(
+                                name = product.displayName,
+                                quantity = product.quantity ?: "100g",
+                                calories = product.caloriesPer100g,
+                                proteinG = product.proteinPer100g,
+                                carbsG = product.carbsPer100g,
+                                fatG = product.fatPer100g,
+                                openFoodFactsId = product.code
+                            )
+                        )
+                    }
                 }
-
-            // Deduplicate with existing local results
-            remoteMatches.forEach { remote ->
-                if (results.none { it.name.equals(remote.name, ignoreCase = true) }) {
-                    results.add(remote)
-                }
-            }
         } catch (e: Exception) {
-            // If offline, local results are still returned!
+            // Hors ligne, ou Open Food Facts limite les clients anonymes et
+            // renvoie une page HTML que Gson ne sait pas lire. Les resultats
+            // locaux restent valides, mais l'ecran doit pouvoir le signaler
+            // plutot que d'afficher une liste vide sans explication.
+            remoteFailed = true
         }
 
-        return results
+        return FoodSearchOutcome(items = results, remoteFailed = remoteFailed)
     }
 
     override suspend fun searchRecentFoodNames(query: String): List<String> {

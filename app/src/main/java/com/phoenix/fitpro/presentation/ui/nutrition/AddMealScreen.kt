@@ -239,6 +239,28 @@ fun AddMealScreen(
                             }
                         }
 
+                        // Messages d'echec : sans eux, une recherche ou une
+                        // estimation qui echoue ressemblait a un bouton inerte.
+                        state.searchError?.let { message ->
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = "⚠  $message",
+                                fontSize = 12.sp,
+                                color = TextSecondary,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        state.aiError?.let { message ->
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = "⚠  $message",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         // Quick Staples row
                         if (state.searchQuery.isBlank()) {
                             Spacer(Modifier.height(12.dp))
@@ -269,6 +291,21 @@ fun AddMealScreen(
                 }
                 items(state.searchResults.take(10)) { food ->
                     FoodResultCard(food = food, onAdd = { viewModel.addFoodFromSearch(food) })
+                }
+            }
+
+            // Invite explicite quand la recherche ne donne rien : la saisie
+            // manuelle existait deja mais passait inapercue.
+            if (state.searchQuery.isNotBlank() && !state.isSearching &&
+                state.searchResults.isEmpty() && !state.showManualForm
+            ) {
+                item {
+                    Text(
+                        "Aucun resultat pour \"${state.searchQuery}\". Estime-le avec l'IA, " +
+                            "ou saisis-le a la main ci-dessous.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
                 }
             }
 

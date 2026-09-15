@@ -9,6 +9,7 @@ import com.phoenix.fitpro.domain.repository.NutritionRepository
 import com.phoenix.fitpro.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -47,6 +48,10 @@ data class AddMealUiState(
     val saveSuccess: Boolean = false,
     val isAiEstimating: Boolean = false,
     val error: String? = null,
+    /** Renseigne quand Open Food Facts n'a pas repondu (limite anonyme, hors ligne). */
+    val searchError: String? = null,
+    /** Renseigne quand l'estimation IA a echoue. */
+    val aiError: String? = null,
     // Manual entry fields
     val manualFoodName: String = "",
     val manualCalories: String = "",
@@ -105,17 +110,49 @@ class NutritionViewModel @Inject constructor(
     fun setMealDate(date: LocalDate) = _addState.update { it.copy(selectedDate = date) }
 
     fun setSearchQuery(query: String) {
-        _addState.update { it.copy(searchQuery = query, isSearching = query.isNotBlank()) }
-        if (query.isNotBlank()) {
-            searchJob?.cancel()
-            searchJob = viewModelScope.launch {
-                delay(200) // fast debounce
-                val results = nutritionRepo.searchFoodOnline(query)
-                val recentNames = nutritionRepo.searchRecentFoodNames(query)
-                _addState.update { it.copy(searchResults = results, recentNames = recentNames, isSearching = false) }
+        _addState.update {
+            it.copy(searchQuery = query, isSearching = query.isNotBlank(), searchError = null)
+        }
+        if (query.isBlank()) {
+            _addState.update {
+                it.copy(searchResults = emptyList(), isSearching = false, searchError = null)
             }
-        } else {
-            _addState.update { it.copy(searchResults = emptyList(), isSearching = false) }
+            return
+        }
+
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            // Open Food Facts limite les clients anonymes : un appel par pause de
+            // frappe suffit a se faire bloquer. 500 ms laissent le temps de finir
+            // de taper un nom compose comme "taboule au poulet".
+            delay(500)
+            try {
+                val outcome = nutritionRepo.searchFoodOnline(query)
+                val recentNames = nutritionRepo.searchRecentFoodNames(query)
+                _addState.update {
+                    it.copy(
+                        searchResults = outcome.items,
+                        recentNames = recentNames,
+                        isSearching = false,
+                        searchError = if (outcome.remoteFailed && outcome.items.isEmpty()) {
+                            "Recherche en ligne indisponible. Utilise l'estimation IA ou la saisie manuelle."
+                        } else null
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Sans ce filet, l'exception tuait la coroutine et isSearching
+                // restait a true : l'ecran affichait un chargement infini, ce qui
+                // masquait aussi le bouton IA et la saisie manuelle.
+                _addState.update {
+                    it.copy(
+                        isSearching = false,
+                        searchResults = emptyList(),
+                        searchError = "Recherche indisponible. Utilise l'estimation IA ou la saisie manuelle."
+                    )
+                }
+            }
         }
     }
 
@@ -138,51 +175,57 @@ class NutritionViewModel @Inject constructor(
     // ── AI Estimation for custom complex dishes ──────────────────────────────
     fun estimateDishWithAi(dishName: String) {
         if (dishName.isBlank()) return
-        _addState.update { it.copy(isAiEstimating = true) }
+        _addState.update { it.copy(isAiEstimating = true, aiError = null) }
 
         viewModelScope.launch {
             try {
                 val prompt = """
-Estime précisément les valeurs nutritionnelles moyennes pour 1 portion standard de : "$dishName".
-Réponds UNIQUEMENT sur une seule ligne au format strict suivant :
-Calories | Protéines(g) | Glucides(g) | Lipides(g) | Portion
+Estime les valeurs nutritionnelles moyennes pour 1 portion standard de : "$dishName".
+Reponds UNIQUEMENT par une seule ligne, sans phrase d'introduction, au format :
+Calories | Proteines(g) | Glucides(g) | Lipides(g) | Portion
 Exemple : 450 | 28 | 45 | 18 | 1 assiette (350g)
-"""
-                val res = AiService.generate(prompt)
-                val parts = res.split("|").map { it.trim() }
-                if (parts.size >= 4) {
-                    val cal = parts[0].filter { it.isDigit() }.toIntOrNull() ?: 350
-                    val prot = parts[1].filter { it.isDigit() || it == '.' }.toFloatOrNull() ?: 20f
-                    val carbs = parts[2].filter { it.isDigit() || it == '.' }.toFloatOrNull() ?: 35f
-                    val fat = parts[3].filter { it.isDigit() || it == '.' }.toFloatOrNull() ?: 12f
-                    val qty = parts.getOrNull(4)?.take(30) ?: "1 portion"
+""".trimIndent()
 
-                    val item = FoodItem(
+                // generateOrThrow, et non generate : ce dernier renvoie les erreurs
+                // sous forme de texte, qui traversaient le parseur sans declencher
+                // le moindre signal. L'ecran semblait alors ne rien faire.
+                val res = AiService.generateOrThrow(prompt, AiService.TASK_NUTRITION)
+
+                val line = res.lines().firstOrNull { it.count { c -> c == '|' } >= 3 }
+                    ?: throw IllegalStateException("Reponse illisible : ${res.take(120)}")
+
+                val parts = line.split("|").map { it.trim() }
+                fun num(i: Int): String = parts.getOrNull(i).orEmpty().replace(',', '.')
+                    .filter { it.isDigit() || it == '.' }
+
+                val cal = num(0).toFloatOrNull()?.toInt()
+                    ?: throw IllegalStateException("Calories illisibles")
+
+                addFoodFromSearch(
+                    FoodItem(
                         name = dishName.trim(),
-                        quantity = qty,
+                        quantity = parts.getOrNull(4)?.take(30)?.ifBlank { null } ?: "1 portion",
                         calories = cal,
-                        proteinG = prot,
-                        carbsG = carbs,
-                        fatG = fat
+                        proteinG = num(1).toFloatOrNull(),
+                        carbsG = num(2).toFloatOrNull(),
+                        fatG = num(3).toFloatOrNull()
                     )
-                    addFoodFromSearch(item)
-                }
-            } catch (e: Exception) {
-                // fallback
-                val item = FoodItem(
-                    name = dishName.trim(),
-                    quantity = "1 portion",
-                    calories = 300,
-                    proteinG = 15f,
-                    carbsG = 30f,
-                    fatG = 10f
                 )
-                addFoodFromSearch(item)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Aucune valeur de repli : inventer 300 kcal et les presenter comme
+                // une mesure polluait silencieusement le suivi nutritionnel.
+                _addState.update {
+                    it.copy(aiError = e.message ?: "Estimation IA indisponible.")
+                }
             } finally {
                 _addState.update { it.copy(isAiEstimating = false) }
             }
         }
     }
+
+    fun clearAiError() = _addState.update { it.copy(aiError = null) }
 
     // Manual food form
     fun setManualFoodName(v: String) = _addState.update { it.copy(manualFoodName = v) }

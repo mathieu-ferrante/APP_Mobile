@@ -21,6 +21,19 @@ interface WorkoutRepository {
     suspend fun getActiveDates(since: LocalDate): List<LocalDate>
 }
 
+/**
+ * Resultat d'une recherche d'aliment.
+ *
+ * [remoteFailed] distingue "le service n'a rien trouve" de "le service n'a pas
+ * repondu" : Open Food Facts limite les clients anonymes et renvoie alors une
+ * page HTML. Sans cette distinction l'utilisateur voyait une liste vide sans
+ * savoir que la recherche avait echoue.
+ */
+data class FoodSearchOutcome(
+    val items: List<FoodItem> = emptyList(),
+    val remoteFailed: Boolean = false
+)
+
 interface NutritionRepository {
     fun getMealsForDate(date: LocalDate): Flow<List<MealEntry>>
     suspend fun addMealWithFoods(meal: MealEntry): Long
@@ -28,7 +41,7 @@ interface NutritionRepository {
     suspend fun deleteFood(food: FoodItem)
     suspend fun getTotalCaloriesForDate(date: LocalDate): Int
     suspend fun getDailyCalories(from: LocalDate, to: LocalDate): List<Pair<LocalDate, Int>>
-    suspend fun searchFoodOnline(query: String): List<FoodItem>
+    suspend fun searchFoodOnline(query: String): FoodSearchOutcome
     suspend fun searchRecentFoodNames(query: String): List<String>
 }
 

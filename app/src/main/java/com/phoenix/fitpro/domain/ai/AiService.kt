@@ -34,32 +34,42 @@ object AiService {
     suspend fun ask(userMessage: String, systemContext: String): String =
         withContext(Dispatchers.IO) {
             try {
-                send(buildSystemPrompt(systemContext), userMessage)
+                send(buildSystemPrompt(systemContext), userMessage, TASK_CHAT)
             } catch (e: Exception) {
                 handleError(e)
             }
         }
 
-    suspend fun generate(prompt: String): String = withContext(Dispatchers.IO) {
-        try {
-            send(baseCoachInstructions(), prompt)
-        } catch (e: Exception) {
-            handleError(e)
+    /**
+     * @param task "nutrition" (modele precis, sortie courte), "generate" ou
+     *   "chat". Le serveur choisit le modele et plafonne la sortie en fonction.
+     */
+    suspend fun generate(prompt: String, task: String = TASK_GENERATE): String =
+        withContext(Dispatchers.IO) {
+            try {
+                send(baseCoachInstructions(), prompt, task)
+            } catch (e: Exception) {
+                handleError(e)
+            }
         }
-    }
 
-    private fun send(systemPrompt: String, userMessage: String): String {
+    /**
+     * Comme [generate], mais laisse remonter l'echec au lieu de renvoyer le
+     * message d'erreur sous forme de texte. Indispensable partout ou la reponse
+     * est analysee : une erreur rendue comme une reponse normale traversait le
+     * parseur sans declencher aucun signal.
+     */
+    suspend fun generateOrThrow(prompt: String, task: String = TASK_GENERATE): String =
+        withContext(Dispatchers.IO) { send(baseCoachInstructions(), prompt, task) }
+
+    private fun send(systemPrompt: String, userMessage: String, task: String): String {
         val baseUrl = BuildConfig.SUPABASE_URL.trim().trimEnd('/')
         if (baseUrl.isBlank()) throw IllegalStateException(NOT_CONFIGURED)
 
         val token = SupabaseBackend.current?.accessToken()
             ?: throw IllegalStateException(NO_SESSION)
 
-        val payload = ProxyRequest(
-            system = systemPrompt,
-            user = userMessage,
-            maxOutputTokens = 1024
-        )
+        val payload = ProxyRequest(system = systemPrompt, user = userMessage, task = task)
         val request = Request.Builder()
             .url(baseUrl + FUNCTION_PATH)
             .addHeader("Authorization", "Bearer $token")
@@ -121,10 +131,14 @@ Reponds de maniere personnalisee, precise et actionnable.
     private const val NO_SESSION =
         "401: Aucune session active."
 
+    const val TASK_CHAT = "chat"
+    const val TASK_GENERATE = "generate"
+    const val TASK_NUTRITION = "nutrition"
+
     private data class ProxyRequest(
         val system: String,
         val user: String,
-        val maxOutputTokens: Int
+        val task: String
     )
 
     private data class ProxyResponse(val text: String?, val error: String?)

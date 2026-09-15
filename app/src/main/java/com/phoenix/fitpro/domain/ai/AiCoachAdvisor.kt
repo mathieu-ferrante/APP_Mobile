@@ -235,8 +235,11 @@ object AiCoachAdvisor {
         report: CoachAnalysisReport
     ): ChatMessage {
         val q = userMessage.lowercase().trim()
-        val isEn = java.util.Locale.getDefault().language.equals("en", ignoreCase = true) ||
-                q.contains("hello") || q.contains("hi") || q.contains("eat") || q.contains("workout") || q.contains("injury")
+        // La langue vient UNIQUEMENT de la locale de l'application. L'ancienne
+        // version basculait en anglais des que le message contenait "hi", ce qui
+        // se declenchait sur des mots francais courants (machine, hier, fichier,
+        // chiffre...) et repondait en anglais a des questions posees en francais.
+        val isEn = java.util.Locale.getDefault().language.equals("en", ignoreCase = true)
 
         val reply = if (isEn) {
             when {
