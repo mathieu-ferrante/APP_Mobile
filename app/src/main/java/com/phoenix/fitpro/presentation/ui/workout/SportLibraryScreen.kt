@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -343,7 +344,16 @@ private fun SportDetailBottomSheet(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(ex.name, style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
+                                // weight + fill = false : le nom s'enroule sur
+                                // plusieurs lignes au lieu de repousser le badge
+                                // series/reps hors de l'ecran.
+                                Text(
+                                    ex.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
+                                )
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
                                     color = ElectricBlueAlpha15
@@ -359,7 +369,7 @@ private fun SportDetailBottomSheet(
                                 OutlinedButton(
                                     onClick = { selectedExerciseForTutorial = ex },
                                     shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.weight(1f).height(36.dp),
+                                    modifier = Modifier.weight(1f).defaultMinSize(minHeight = 36.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp),
                                     border = BorderStroke(1.dp, ElectricBlue.copy(alpha = 0.6f))
                                 ) {
@@ -375,7 +385,7 @@ private fun SportDetailBottomSheet(
                                         context.startActivity(intent)
                                     },
                                     shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.weight(1f).height(36.dp),
+                                    modifier = Modifier.weight(1f).defaultMinSize(minHeight = 36.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed.copy(alpha = 0.8f))
                                 ) {
@@ -401,7 +411,7 @@ private fun SportDetailBottomSheet(
                                 isLoadingAi = false
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 44.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = NeonGreen, contentColor = Color.Black)
                     ) {
