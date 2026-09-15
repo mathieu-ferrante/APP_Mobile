@@ -2,11 +2,13 @@
 
 import com.phoenix.fitpro.data.repository.AuthRepositoryImpl
 import com.phoenix.fitpro.data.repository.NutritionRepositoryImpl
+import com.phoenix.fitpro.data.repository.SyncRepositoryImpl
 import com.phoenix.fitpro.data.repository.ProgramRepositoryImpl
 import com.phoenix.fitpro.data.repository.UserRepositoryImpl
 import com.phoenix.fitpro.data.repository.WorkoutRepositoryImpl
 import com.phoenix.fitpro.domain.repository.AuthRepository
 import com.phoenix.fitpro.domain.repository.NutritionRepository
+import com.phoenix.fitpro.domain.repository.SyncRepository
 import com.phoenix.fitpro.domain.repository.ProgramRepository
 import com.phoenix.fitpro.domain.repository.UserRepository
 import com.phoenix.fitpro.domain.repository.WorkoutRepository
@@ -34,5 +36,8 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+
+    @Binds @Singleton
+    abstract fun bindSyncRepository(impl: SyncRepositoryImpl): SyncRepository
 }
 

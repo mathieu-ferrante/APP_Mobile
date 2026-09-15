@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.phoenix.fitpro.domain.ai.GeminiAiService
+import com.phoenix.fitpro.domain.ai.AiService
 import com.phoenix.fitpro.domain.model.Sport
 import com.phoenix.fitpro.domain.model.SportCategory
 import com.phoenix.fitpro.presentation.theme.*
@@ -84,7 +85,7 @@ fun SportLibraryScreen(
                 title = { Text("Bibliothèque de sports", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, tint = TextPrimary)
                     }
                 },
                 actions = {
@@ -362,7 +363,7 @@ private fun SportDetailBottomSheet(
                                     contentPadding = PaddingValues(horizontal = 8.dp),
                                     border = BorderStroke(1.dp, ElectricBlue.copy(alpha = 0.6f))
                                 ) {
-                                    Icon(Icons.Rounded.MenuBook, null, tint = ElectricBlue, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.AutoMirrored.Rounded.MenuBook, null, tint = ElectricBlue, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.width(4.dp))
                                     Text("Tuto écrit", fontSize = 11.sp, color = ElectricBlue)
                                 }
@@ -395,7 +396,7 @@ private fun SportDetailBottomSheet(
                             isLoadingAi = true
                             scope.launch {
                                 val prompt = "Donne 3 conseils clés d'expert et une progression pour progresser en ${sport.name} au niveau ${selectedLevel.labelFr}. Sois très précis et synthétique."
-                                val res = GeminiAiService.generate(prompt)
+                                val res = AiService.generate(prompt)
                                 aiAdviceText = res
                                 isLoadingAi = false
                             }
@@ -443,7 +444,7 @@ private fun SportDetailBottomSheet(
             containerColor = DarkSurface,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.MenuBook, null, tint = ElectricBlue)
+                    Icon(Icons.AutoMirrored.Rounded.MenuBook, null, tint = ElectricBlue)
                     Spacer(Modifier.width(8.dp))
                     Text(selectedExerciseForTutorial!!.name, color = TextPrimary, fontWeight = FontWeight.Bold)
                 }

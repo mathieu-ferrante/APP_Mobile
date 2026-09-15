@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -717,7 +718,7 @@ private fun CoachChatContent(
                             .size(44.dp)
                             .background(NeonGreen, CircleShape)
                     ) {
-                        Icon(Icons.Rounded.Send, null, tint = Color.Black, modifier = Modifier.size(20.dp))
+                        Icon(Icons.AutoMirrored.Rounded.Send, null, tint = Color.Black, modifier = Modifier.size(20.dp))
                     }
                 }
                 Row(
@@ -795,7 +796,7 @@ private fun ChatBubble(
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
-                        imageVector = if (isSpeaking) Icons.Rounded.Stop else Icons.Rounded.VolumeUp,
+                        imageVector = if (isSpeaking) Icons.Rounded.Stop else Icons.AutoMirrored.Rounded.VolumeUp,
                         contentDescription = if (isSpeaking) "Arrêter la lecture" else "Écouter la réponse",
                         tint = if (isSpeaking) AccentOrange else NeonGreen,
                         modifier = Modifier.size(20.dp)

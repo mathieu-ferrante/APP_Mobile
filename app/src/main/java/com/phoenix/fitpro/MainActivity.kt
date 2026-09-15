@@ -5,19 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.google.firebase.auth.FirebaseAuth
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.phoenix.fitpro.domain.repository.SyncRepository
 import com.phoenix.fitpro.presentation.navigation.PhoenixNavHost
 import com.phoenix.fitpro.presentation.theme.PhoenixTheme
 import com.phoenix.fitpro.presentation.ui.auth.AuthScreen
+import com.phoenix.fitpro.presentation.ui.auth.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var syncRepository: SyncRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen before super.onCreate
@@ -27,17 +29,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PhoenixTheme {
-                val auth = remember { FirebaseAuth.getInstance() }
-                var currentUser by remember { mutableStateOf(auth.currentUser) }
+                val authViewModel: AuthViewModel = hiltViewModel()
+                val currentEmail by authViewModel.currentEmail.collectAsStateWithLifecycle()
 
-                DisposableEffect(auth) {
-                    val listener = FirebaseAuth.AuthStateListener { currentUser = it.currentUser }
-                    auth.addAuthStateListener(listener)
-                    onDispose { auth.removeAuthStateListener(listener) }
-                }
-
-                if (currentUser?.isEmailVerified == true) PhoenixNavHost() else AuthScreen()
+                if (currentEmail != null) PhoenixNavHost() else AuthScreen(authViewModel)
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Sauvegarde cloud des dernières modifications quand l'app passe en arrière-plan.
+        syncRepository.pushInBackground()
     }
 }

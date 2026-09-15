@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 // Lecture de local.properties pour récupérer la clé API Gemini (jamais commitée dans Git)
@@ -14,8 +14,18 @@ val localProps = Properties().also { props ->
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { props.load(it) }
 }
-val geminiApiKey: String = localProps.getProperty("gemini.api.key", "")
-val geminiModel: String = localProps.getProperty("gemini.model", "gemini-3.5-flash-lite")
+// Identifiants Supabase (synchronisation multi-appareils) - jamais commites dans Git
+val supabaseUrl: String = localProps.getProperty("supabase.url", "")
+val supabaseAnonKey: String = localProps.getProperty("supabase.anon.key", "")
+
+// Signature release - lue depuis keystore.properties (jamais commite dans Git).
+// Sans ce fichier, le build release reste non signe, exactement comme avant.
+val keystoreProps = Properties().also { props ->
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { props.load(it) }
+}
+val releaseKeystore = keystoreProps.getProperty("storeFile")?.let { rootProject.file(it) }
+val hasReleaseKeystore = releaseKeystore?.exists() == true
 
 fun String.asBuildConfigString(): String =
     "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
@@ -34,13 +44,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
 
-        // Gemini AI config - lue depuis local.properties (jamais commitee dans Git)
-        buildConfigField("String", "GEMINI_API_KEY", geminiApiKey.asBuildConfigString())
-        buildConfigField("String", "GEMINI_MODEL", geminiModel.asBuildConfigString())
+        // Supabase config - lue depuis local.properties (jamais commitee dans Git)
+        buildConfigField("String", "SUPABASE_URL", supabaseUrl.asBuildConfigString())
+        buildConfigField("String", "SUPABASE_ANON_KEY", supabaseAnonKey.asBuildConfigString())
+    }
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
+            if (hasReleaseKeystore) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -61,7 +83,6 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions { jvmTarget = "17" }
 
     buildFeatures {
         compose = true
@@ -70,6 +91,12 @@ android {
 
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
@@ -112,11 +139,12 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.analytics)
+    // Supabase (authentification + synchronisation cloud)
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth)
+    implementation(libs.supabase.postgrest)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.kotlinx.serialization.json)
 
     // Network
     implementation(libs.retrofit)

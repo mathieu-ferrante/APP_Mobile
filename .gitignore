@@ -13,3 +13,15 @@ captures/
 *.apk
 *.aab
 *.log
+
+# Secrets et sorties locales (ne jamais committer)
+SUPABASE-SECRETS.local.md
+*.local.md
+build-log.txt
+keystore.properties
+*.jks
+*.keystore
+output/
+node_modules/
+deno.lock
+supabase/.temp/

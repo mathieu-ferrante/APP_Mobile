@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -328,7 +329,7 @@ private fun NutritionCoachCard(
                         .size(40.dp)
                         .background(NeonGreen, CircleShape)
                 ) {
-                    Icon(Icons.Rounded.Send, null, tint = Color.Black, modifier = Modifier.size(18.dp))
+                    Icon(Icons.AutoMirrored.Rounded.Send, null, tint = Color.Black, modifier = Modifier.size(18.dp))
                 }
             }
         }

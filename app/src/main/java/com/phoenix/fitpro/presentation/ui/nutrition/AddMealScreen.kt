@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -89,7 +90,7 @@ fun AddMealScreen(
                 title = { Text("Ajouter un repas", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, tint = TextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

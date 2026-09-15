@@ -25,4 +25,5 @@ object DatabaseModule {
     @Provides fun provideMealEntryDao(db: PhoenixDatabase): MealEntryDao = db.mealEntryDao()
     @Provides fun provideUserProfileDao(db: PhoenixDatabase): UserProfileDao = db.userProfileDao()
     @Provides fun provideAchievementDao(db: PhoenixDatabase): AchievementDao = db.achievementDao()
+    @Provides fun provideSyncDao(db: PhoenixDatabase): SyncDao = db.syncDao()
 }

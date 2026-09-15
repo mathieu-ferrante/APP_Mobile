@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -219,7 +220,7 @@ fun ProfileScreen(
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                         ) {
-                            Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(14.dp))
+                            Icon(Icons.AutoMirrored.Rounded.Logout, null, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("Déconnecter", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
@@ -680,7 +681,7 @@ private fun AuthAccountDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = NeonGreen, contentColor = Color.Black)
                 ) {
-                    Icon(Icons.Rounded.Login, null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.AutoMirrored.Rounded.Login, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Se connecter / Enregistrer ce compte", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
@@ -755,7 +756,7 @@ private fun AuthAccountDialog(
                         border = BorderStroke(1.dp, ErrorRed.copy(alpha = 0.5f)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed)
                     ) {
-                        Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.AutoMirrored.Rounded.Logout, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
                         Text("Se déconnecter (Mode Invité)", fontSize = 12.sp)
                     }
