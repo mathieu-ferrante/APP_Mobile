@@ -24,10 +24,15 @@ data class UserProfile(
             weightKg / ((heightCm / 100f) * (heightCm / 100f))
         } else null
 
-    val xpForNextLevel: Int get() = level * 500
-    val xpProgress: Float get() = (xp % 500) / 500f
-    val xpCurrentLevelBase: Int get() = (level - 1) * 500
-    val xpInCurrentLevel: Int get() = xp - xpCurrentLevelBase
+    /** Niveau recalcule depuis l'XP : fait foi meme si la colonne est desynchronisee. */
+    val effectiveLevel: Int get() = LevelCurve.levelForXp(xp)
+    val xpForNextLevel: Int get() = LevelCurve.totalXpForLevel(effectiveLevel + 1)
+    val xpProgress: Float get() = LevelCurve.progress(xp)
+    val xpCurrentLevelBase: Int get() = LevelCurve.totalXpForLevel(effectiveLevel)
+    val xpInCurrentLevel: Int get() = LevelCurve.xpIntoCurrentLevel(xp)
+    val xpRemainingToNextLevel: Int get() = LevelCurve.xpRemainingToNextLevel(xp)
+    /** Cout total du niveau en cours, pour afficher "x / y" plutot qu'un cumul. */
+    val xpSpanOfCurrentLevel: Int get() = LevelCurve.xpSpanOfLevel(effectiveLevel)
 
     companion object {
         const val XP_PER_WORKOUT = 50

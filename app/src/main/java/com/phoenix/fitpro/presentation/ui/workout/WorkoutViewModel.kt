@@ -183,8 +183,28 @@ class WorkoutViewModel @Inject constructor(
         if (profile.currentStreak >= 7) userRepo.unlockAchievement("streak_7")
         if (profile.currentStreak >= 30) userRepo.unlockAchievement("streak_30")
         if (profile.currentStreak >= 100) userRepo.unlockAchievement("streak_100")
-        if (profile.level >= 5) userRepo.unlockAchievement("level_5")
-        if (profile.level >= 10) userRepo.unlockAchievement("level_10")
+        if (profile.effectiveLevel >= 5) userRepo.unlockAchievement("level_5")
+        if (profile.effectiveLevel >= 10) userRepo.unlockAchievement("level_10")
+
+        // Succes lies au sport reellement pratique, et non a un total indifferencie.
+        val perSport = workoutRepo.getTopSports()
+        if (perSport.size >= 5) userRepo.unlockAchievement("sport_variety_5")
+
+        fun countMatching(vararg keywords: String): Int = perSport
+            .filter { (sport, _) -> keywords.any { sport.name.contains(it, ignoreCase = true) } }
+            .sumOf { it.second }
+
+        val strength = countMatching("muscu", "strength", "crossfit", "force")
+        if (strength >= 10) userRepo.unlockAchievement("sport_strength_10")
+        if (strength >= 50) userRepo.unlockAchievement("sport_strength_50")
+
+        val archery = countMatching("arc", "archery")
+        if (archery >= 10) userRepo.unlockAchievement("sport_archery_10")
+        if (archery >= 50) userRepo.unlockAchievement("sport_archery_50")
+
+        val cardio = countMatching("course", "marche", "run", "walk")
+        if (cardio >= 10) userRepo.unlockAchievement("sport_cardio_10")
+        if (cardio >= 50) userRepo.unlockAchievement("sport_cardio_50")
     }
 
     fun clearSaveSuccess() = _addState.update { it.copy(saveSuccess = false) }

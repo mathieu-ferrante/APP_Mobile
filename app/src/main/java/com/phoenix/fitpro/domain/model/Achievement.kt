@@ -249,6 +249,50 @@ object AchievementDefinitions {
             xpReward = 0,
             tier = AchievementTier.GOLD
         ),
+
+        // ── Maitrise par sport ────────────────────────────────────────────────
+        // Recompenses liees a la pratique reelle : elles se debloquent sur le
+        // sport que l'on pratique vraiment, pas sur un total indifferencie.
+        Achievement(
+            id = "sport_strength_10", titleFr = "Fonte apprivoisée", titleEn = "Iron Initiate",
+            descriptionFr = "10 séances de musculation", descriptionEn = "10 strength workouts",
+            iconEmoji = "💪", xpReward = 120, tier = AchievementTier.BRONZE
+        ),
+        Achievement(
+            id = "sport_strength_50", titleFr = "Force tranquille", titleEn = "Iron Veteran",
+            descriptionFr = "50 séances de musculation", descriptionEn = "50 strength workouts",
+            iconEmoji = "🏋️", xpReward = 400, tier = AchievementTier.GOLD
+        ),
+        Achievement(
+            id = "sport_archery_10", titleFr = "Main sûre", titleEn = "Steady Hand",
+            descriptionFr = "10 séances de tir à l'arc", descriptionEn = "10 archery sessions",
+            iconEmoji = "🏹", xpReward = 120, tier = AchievementTier.BRONZE
+        ),
+        Achievement(
+            id = "sport_archery_50", titleFr = "Œil du faucon", titleEn = "Hawk Eye",
+            descriptionFr = "50 séances de tir à l'arc", descriptionEn = "50 archery sessions",
+            iconEmoji = "🎯", xpReward = 400, tier = AchievementTier.GOLD
+        ),
+        Achievement(
+            id = "sport_cardio_10", titleFr = "Foulée lancée", titleEn = "Stride Found",
+            descriptionFr = "10 séances de marche ou de course", descriptionEn = "10 walking or running sessions",
+            iconEmoji = "🏃", xpReward = 120, tier = AchievementTier.BRONZE
+        ),
+        Achievement(
+            id = "sport_cardio_50", titleFr = "Souffle long", titleEn = "Long Breath",
+            descriptionFr = "50 séances de marche ou de course", descriptionEn = "50 walking or running sessions",
+            iconEmoji = "🌬️", xpReward = 400, tier = AchievementTier.GOLD
+        ),
+        Achievement(
+            id = "sport_variety_5", titleFr = "Touche-à-tout", titleEn = "All-Rounder",
+            descriptionFr = "Pratique 5 sports différents", descriptionEn = "Practise 5 different sports",
+            iconEmoji = "🎪", xpReward = 200, tier = AchievementTier.SILVER
+        ),
+        Achievement(
+            id = "weekly_goals_done", titleFr = "Semaine parfaite", titleEn = "Perfect Week",
+            descriptionFr = "Termine tous tes objectifs de la semaine", descriptionEn = "Complete every weekly goal",
+            iconEmoji = "🏆", xpReward = 250, tier = AchievementTier.GOLD
+        ),
     )
 
     fun findById(id: String) = all.find { it.id == id }

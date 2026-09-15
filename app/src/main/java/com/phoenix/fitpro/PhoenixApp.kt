@@ -4,14 +4,28 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.phoenix.fitpro.domain.repository.UserRepository
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltAndroidApp
 class PhoenixApp : Application() {
 
+    @Inject lateinit var userRepository: UserRepository
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
+
+        // Les succes ne sont semes qu'a la creation de la base : ceux ajoutes par
+        // une mise a jour doivent etre inseres ici, sinon ils resteraient
+        // invisibles pour les comptes existants.
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching { userRepository.syncAchievementDefinitions() }
+        }
     }
 
     private fun createNotificationChannels() {

@@ -21,7 +21,9 @@ data class DashboardUiState(
     val weeklyWorkoutCount: Int = 0,
     val recentAchievement: Achievement? = null,
     val motivationalQuote: String = "",
-    val currentStreak: Int = 0
+    val currentStreak: Int = 0,
+    /** Objectifs de la semaine, deduits des sports reellement pratiques. */
+    val weeklyGoals: List<WeeklyGoal> = emptyList()
 )
 
 @HiltViewModel
@@ -67,7 +69,18 @@ class DashboardViewModel @Inject constructor(
             }.collect { state ->
                 // Fetch weekly count separately (not reactive, just a count)
                 val weeklyCount = workoutRepo.getSessionCountInRange(weekStart, today)
-                _uiState.value = state.copy(weeklyWorkoutCount = weeklyCount)
+
+                // Les objectifs se calibrent sur les quatre semaines precedentes,
+                // il faut donc un historique plus large que la semaine en cours.
+                val challengeStart = WeeklyChallenges.weekStart(today).minusWeeks(4)
+                val recentSessions = workoutRepo
+                    .getSessionsInRange(challengeStart, today)
+                    .first()
+
+                _uiState.value = state.copy(
+                    weeklyWorkoutCount = weeklyCount,
+                    weeklyGoals = WeeklyChallenges.generate(recentSessions, today)
+                )
             }
         }
     }

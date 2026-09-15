@@ -161,7 +161,7 @@ fun ProfileScreen(
                         color = TextSecondary
                     )
                     Text(
-                        text = "${state.profile.xpInCurrentLevel} / 500 XP",
+                        text = "${state.profile.xpInCurrentLevel} / ${state.profile.xpSpanOfCurrentLevel} XP",
                         style = MaterialTheme.typography.labelSmall,
                         color = ElectricBlueLight
                     )

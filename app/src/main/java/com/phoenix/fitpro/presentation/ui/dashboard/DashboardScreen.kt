@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.phoenix.fitpro.domain.model.WorkoutSession
 import com.phoenix.fitpro.presentation.theme.*
+import com.phoenix.fitpro.domain.model.WeeklyGoal
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -47,10 +48,12 @@ fun DashboardScreen(
         // ── Header gradient ───────────────────────────────────────────────────
         DashboardHeader(
             userName = state.profile.name,
-            level = state.profile.level,
+            level = state.profile.effectiveLevel,
             xp = state.profile.xp,
             xpForNextLevel = state.profile.xpForNextLevel,
-            xpInCurrentLevel = state.profile.xpInCurrentLevel
+            xpInCurrentLevel = state.profile.xpInCurrentLevel,
+            xpSpanOfLevel = state.profile.xpSpanOfCurrentLevel,
+            xpProgress = state.profile.xpProgress
         )
 
         Spacer(Modifier.height(16.dp))
@@ -62,6 +65,16 @@ fun DashboardScreen(
         )
 
         Spacer(Modifier.height(16.dp))
+
+        Spacer(Modifier.height(16.dp))
+
+        // Objectifs de la semaine, calibres sur les sports reellement pratiques.
+        if (state.weeklyGoals.isNotEmpty()) {
+            WeeklyGoalsCard(
+                goals = state.weeklyGoals,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
 
         // ── Today summary ─────────────────────────────────────────────────────
         TodaySummaryRow(
@@ -125,7 +138,9 @@ private fun DashboardHeader(
     level: Int,
     xp: Int,
     xpForNextLevel: Int,
-    xpInCurrentLevel: Int
+    xpInCurrentLevel: Int,
+    xpSpanOfLevel: Int,
+    xpProgress: Float
 ) {
     Box(
         modifier = Modifier
@@ -176,13 +191,13 @@ private fun DashboardHeader(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "$xpInCurrentLevel / 500 XP",
+                        text = "$xpInCurrentLevel / $xpSpanOfLevel XP",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary
                     )
                     Spacer(Modifier.height(4.dp))
                     LinearProgressIndicator(
-                        progress = { (xpInCurrentLevel / 500f).coerceIn(0f, 1f) },
+                        progress = { xpProgress },
                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
                         color = ElectricBlue,
                         trackColor = DarkSurfaceVariant
@@ -480,6 +495,68 @@ private fun RecentAchievementCard(
                 )
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = TextSecondary)
+        }
+    }
+}
+
+/**
+ * Objectifs hebdomadaires. Les cibles sont calibrees sur les quatre semaines
+ * precedentes : elles suivent les sports que l'on pratique vraiment.
+ */
+@Composable
+private fun WeeklyGoalsCard(
+    goals: List<WeeklyGoal>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            val done = goals.count { it.isComplete }
+            Text(
+                text = "Objectifs de la semaine  ($done/${goals.size})",
+                style = MaterialTheme.typography.titleSmall,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(12.dp))
+
+            goals.forEach { goal ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(goal.emoji, fontSize = 20.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = goal.title.value,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (goal.isComplete) NeonGreen else TextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = goal.detail.value,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        LinearProgressIndicator(
+                            progress = { goal.progress },
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                            color = if (goal.isComplete) NeonGreen else ElectricBlue,
+                            trackColor = DarkSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = "${goal.current}/${goal.target}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (goal.isComplete) NeonGreen else TextSecondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+            }
         }
     }
 }

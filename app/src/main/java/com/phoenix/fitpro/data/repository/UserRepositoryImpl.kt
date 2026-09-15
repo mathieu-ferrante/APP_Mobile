@@ -62,7 +62,7 @@ class UserRepositoryImpl @Inject constructor(
         // Add XP reward
         val profile = profileDao.getProfile() ?: return null
         val newXp = profile.xp + definition.xpReward
-        val newLevel = 1 + newXp / 500
+        val newLevel = LevelCurve.levelForXp(newXp)
         profileDao.upsertProfile(profile.copy(xp = newXp, level = newLevel))
         return definition.copy(isUnlocked = true, unlockedAt = LocalDate.now())
     }
@@ -83,7 +83,7 @@ class UserRepositoryImpl @Inject constructor(
         val newXp = if (lastActive != today && activeToday) {
             profile.xp + UserProfile.XP_PER_STREAK_DAY
         } else profile.xp
-        val newLevel = 1 + newXp / 500
+        val newLevel = LevelCurve.levelForXp(newXp)
 
         val updatedProfile = profile.copy(
             currentStreak = newStreak,
@@ -96,10 +96,18 @@ class UserRepositoryImpl @Inject constructor(
         return newStreak
     }
 
+    override suspend fun syncAchievementDefinitions() {
+        achievementDao.insertAll(
+            AchievementDefinitions.all.map {
+                AchievementEntity(id = it.id, isUnlocked = false, unlockedAt = null)
+            }
+        )
+    }
+
     override suspend fun addXp(amount: Int) {
         val profile = profileDao.getProfile() ?: return
         val newXp = profile.xp + amount
-        val newLevel = 1 + newXp / 500
+        val newLevel = LevelCurve.levelForXp(newXp)
         profileDao.upsertProfile(profile.copy(xp = newXp, level = newLevel))
     }
 

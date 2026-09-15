@@ -55,6 +55,14 @@ interface UserRepository {
     suspend fun unlockAchievement(id: String): Achievement?
     suspend fun updateStreak(activeToday: Boolean): Int
     suspend fun addXp(amount: Int)
+
+    /**
+     * Insère les définitions de succès absentes de la base.
+     * Les succès ne sont semés qu'à la création de la base : sans cela, ceux
+     * ajoutés par une mise à jour resteraient invisibles pour les comptes
+     * existants. L'insertion ignore les conflits, les déblocages sont préservés.
+     */
+    suspend fun syncAchievementDefinitions()
 }
 
 interface ProgramRepository {
