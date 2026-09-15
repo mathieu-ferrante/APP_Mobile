@@ -130,6 +130,29 @@ class AuthRepositoryImpl @Inject constructor(
         return AuthResult.Success(signInWithEmail(cleanEmail, null))
     }
 
+    override suspend fun signInWithGoogle(): AuthResult {
+        if (!backend.isConfigured) {
+            return AuthResult.Failure("La connexion Google nécessite la synchronisation cloud.")
+        }
+        val launched = backend.signInWithGoogle()
+        return if (launched.isSuccess) {
+            // La session n'existe pas encore : elle arrivera par lien profond.
+            AuthResult.Failure("")
+        } else {
+            AuthResult.Failure(translate(launched.exceptionOrNull()))
+        }
+    }
+
+    override suspend fun completeOAuthSession(): AuthResult? {
+        if (!backend.isConfigured) return null
+        val email = backend.currentUserEmail()?.trim()?.lowercase() ?: return null
+        if (email == getCurrentEmail()) return null
+
+        signInWithEmail(email, backend.currentUserDisplayName())
+        syncRepo.pullFromCloud()
+        return AuthResult.Success(userRepo.getProfile().copy(email = email))
+    }
+
     override suspend fun changePassword(
         email: String,
         oldPassword: String,

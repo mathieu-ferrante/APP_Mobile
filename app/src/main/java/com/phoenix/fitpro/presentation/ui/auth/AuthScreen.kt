@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -134,6 +136,29 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
                 Text(if (state.isCreatingAccount) "Créer mon compte" else "Se connecter")
+            }
+        }
+
+        // Connexion Google : disponible seulement si la synchronisation cloud est
+        // configuree, puisqu'elle passe par Supabase.
+        if (viewModel.isCloudEnabled) {
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f))
+                Text(
+                    "  ou  ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f))
+            }
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = viewModel::signInWithGoogle,
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Continuer avec Google")
             }
         }
 

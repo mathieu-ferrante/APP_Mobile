@@ -36,6 +36,19 @@ interface AuthRepository {
     /** Envoie un email de réinitialisation (nécessite la synchronisation cloud). */
     suspend fun sendPasswordReset(email: String): AuthResult
 
+    /**
+     * Ouvre la connexion Google. Rend la main immédiatement : le navigateur
+     * s'ouvre et la session revient par lien profond, d'où [completeOAuthSession].
+     */
+    suspend fun signInWithGoogle(): AuthResult
+
+    /**
+     * À appeler quand une session Supabase apparaît sans passer par le
+     * formulaire : crée ou recharge le profil local correspondant.
+     * Renvoie null s'il n'y a rien à faire.
+     */
+    suspend fun completeOAuthSession(): AuthResult?
+
     /** Connexion sans mot de passe : réservée au changement de compte depuis le profil. */
     suspend fun signInWithEmail(email: String, displayName: String? = null): UserProfile
 

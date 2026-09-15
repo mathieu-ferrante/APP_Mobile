@@ -2,10 +2,12 @@ package com.phoenix.fitpro.presentation.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.phoenix.fitpro.data.remote.sync.SupabaseBackend
 import com.phoenix.fitpro.domain.repository.AuthRepository
 import com.phoenix.fitpro.domain.repository.AuthResult
 import com.phoenix.fitpro.domain.repository.SyncRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +29,24 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepo: AuthRepository,
-    private val syncRepo: SyncRepository
+    private val syncRepo: SyncRepository,
+    private val backend: SupabaseBackend
 ) : ViewModel() {
+
+    init {
+        // Une connexion Google revient par lien profond, sans repasser par le
+        // formulaire : on materialise alors le profil local correspondant.
+        backend.sessionStatusFlow()?.let { statuses ->
+            viewModelScope.launch {
+                statuses.collect { status ->
+                    if (status is SessionStatus.Authenticated) {
+                        runCatching { authRepo.completeOAuthSession() }
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                }
+            }
+        }
+    }
 
     /** Email du compte connecté, ou null. Sert de garde d'accès à l'application. */
     val currentEmail: StateFlow<String?> = authRepo.currentEmailFlow
@@ -38,6 +56,17 @@ class AuthViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    fun signInWithGoogle() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = authRepo.signInWithGoogle()
+            // Un message vide signale que le navigateur s'est ouvert : la session
+            // arrivera par lien profond, il n'y a pas d'erreur a afficher.
+            val message = (result as? AuthResult.Failure)?.message?.takeIf { it.isNotBlank() }
+            _uiState.update { it.copy(isLoading = message == null, errorMessage = message) }
+        }
+    }
 
     fun setEmail(value: String) = _uiState.update { it.copy(email = value, errorMessage = null) }
     fun setPassword(value: String) = _uiState.update { it.copy(password = value, errorMessage = null) }

@@ -4,7 +4,12 @@ import com.phoenix.fitpro.BuildConfig
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
@@ -36,7 +41,13 @@ class SupabaseBackend @Inject constructor() {
                 supabaseUrl = BuildConfig.SUPABASE_URL,
                 supabaseKey = BuildConfig.SUPABASE_ANON_KEY
             ) {
-                install(Auth)
+                install(Auth) {
+                    // Redirection du retour OAuth vers l'application. Doit etre
+                    // declaree telle quelle dans Supabase > Authentication >
+                    // URL Configuration > Redirect URLs : phoenixfit://login-callback
+                    scheme = OAUTH_SCHEME
+                    host = OAUTH_HOST
+                }
                 install(Postgrest)
             }
         }.getOrNull()
@@ -65,6 +76,27 @@ class SupabaseBackend @Inject constructor() {
         supabase.auth.signInWith(Email) {
             this.email = email
             this.password = password
+        }
+    }
+
+    /**
+     * Lance la connexion Google. La methode rend la main immediatement : le
+     * navigateur s'ouvre, et la session arrive ensuite par le lien profond que
+     * MainActivity transmet a handleDeeplinks.
+     */
+    suspend fun signInWithGoogle(): Result<Unit> = runCatching {
+        val supabase = client ?: error(NOT_CONFIGURED)
+        supabase.auth.signInWith(Google)
+    }
+
+    /** Etat de session, pour reagir au retour d'une connexion OAuth. */
+    fun sessionStatusFlow(): Flow<SessionStatus>? = client?.auth?.sessionStatus
+
+    /** Nom affichable fourni par le fournisseur OAuth, quand il en donne un. */
+    fun currentUserDisplayName(): String? {
+        val meta = client?.auth?.currentUserOrNull()?.userMetadata ?: return null
+        return listOf("full_name", "name").firstNotNullOfOrNull { key ->
+            (meta[key] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
         }
     }
 
@@ -122,6 +154,9 @@ class SupabaseBackend @Inject constructor() {
         @Volatile
         var current: SupabaseBackend? = null
             private set
+
+        const val OAUTH_SCHEME = "phoenixfit"
+        const val OAUTH_HOST = "login-callback"
 
         private const val TABLE = "user_data"
         private const val NOT_CONFIGURED =

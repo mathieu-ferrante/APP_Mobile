@@ -1,5 +1,6 @@
 package com.phoenix.fitpro
 
+import android.content.Intent
 import android.os.Bundle
 import java.util.Locale
 import androidx.activity.ComponentActivity
@@ -9,7 +10,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.phoenix.fitpro.data.remote.sync.SupabaseBackend
 import com.phoenix.fitpro.domain.repository.SyncRepository
+import io.github.jan.supabase.auth.handleDeeplinks
 import com.phoenix.fitpro.presentation.navigation.PhoenixNavHost
 import com.phoenix.fitpro.presentation.theme.PhoenixTheme
 import com.phoenix.fitpro.presentation.util.LanguageHelper
@@ -22,6 +25,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var syncRepository: SyncRepository
+    @Inject lateinit var supabaseBackend: SupabaseBackend
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen before super.onCreate
@@ -40,6 +44,10 @@ class MainActivity : ComponentActivity() {
         // ce choix sur les versions ou il n'est pas reporte dans la configuration.
         Locale.setDefault(Locale(LanguageHelper.getCurrentLanguage(this)))
 
+        // Retour de connexion Google : c'est supabase-kt qui extrait la session
+        // du lien profond, encore faut-il le lui transmettre.
+        supabaseBackend.client?.handleDeeplinks(intent)
+
         setContent {
             PhoenixTheme {
                 val authViewModel: AuthViewModel = hiltViewModel()
@@ -48,6 +56,12 @@ class MainActivity : ComponentActivity() {
                 if (currentEmail != null) PhoenixNavHost() else AuthScreen(authViewModel)
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        supabaseBackend.client?.handleDeeplinks(intent)
     }
 
     override fun onStop() {
