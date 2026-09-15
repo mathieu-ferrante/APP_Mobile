@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.phoenix.fitpro.domain.ai.GeminiAiService
+import com.phoenix.fitpro.domain.ai.AiService
 import com.phoenix.fitpro.domain.model.*
 import com.phoenix.fitpro.presentation.theme.*
 import kotlinx.coroutines.launch
@@ -107,7 +108,7 @@ fun AddWorkoutScreen(
                 title = { Text("Nouvelle séance", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, tint = TextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -546,7 +547,7 @@ private fun getAdaptivePresetExercises(sportName: String): List<ExerciseSet> {
 private suspend fun generateAiSessionForSport(sportName: String): List<ExerciseSet> {
     return try {
         val prompt = "Génère 3 ou 4 exercices parfaits pour une séance de $sportName au format strict : Nom | Séries | Répétitions OU Durée min. Exemple : Squat | 4 | 10"
-        val response = GeminiAiService.generate(prompt)
+        val response = AiService.generate(prompt)
         val lines = response.lines().filter { it.contains("|") }
         if (lines.isNotEmpty()) {
             lines.mapNotNull { line ->

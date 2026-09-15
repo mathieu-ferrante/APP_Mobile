@@ -213,7 +213,7 @@ class CoachViewModel @Inject constructor(
 
             // Real Gemini LLM Call
             val responseText = try {
-                GeminiAiService.ask(text, systemContext)
+                AiService.ask(text, systemContext)
             } catch (e: Exception) {
                 // Fallback to local rule engine if network / key problem
                 if (report != null) {

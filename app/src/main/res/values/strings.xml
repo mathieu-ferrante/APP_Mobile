@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App -->
-    <string name="app_name">Phoenix</string>
+    <string name="app_name">Phoenix Fit</string>
     <string name="app_tagline">Renais plus fort que jamais</string>
 
     <!-- Navigation -->

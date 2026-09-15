@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +48,7 @@ fun ProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.saveSuccess) {
         if (state.saveSuccess) {
-            snackbarHostState.showSnackbar("Profil enregistrÃ© !")
+            snackbarHostState.showSnackbar("Profil enregistré !")
             viewModel.clearSaveSuccess()
         }
     }
@@ -194,17 +196,17 @@ fun ProfileScreen(
                         modifier = Modifier.size(40.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(if (state.profile.email != null) "âœ‰ï¸" else "ðŸ‘¤", fontSize = 18.sp)
+                            Text(if (state.profile.email != null) "✉️" else "👤", fontSize = 18.sp)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         if (state.profile.email != null) {
-                            Text("Compte connectÃ©", style = MaterialTheme.typography.labelSmall, color = NeonGreen, fontWeight = FontWeight.Bold)
+                            Text("Compte connecté", style = MaterialTheme.typography.labelSmall, color = NeonGreen, fontWeight = FontWeight.Bold)
                             Text(state.profile.email!!, style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                         } else {
-                            Text("Mode InvitÃ©", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                            Text("Non connectÃ©", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                            Text("Mode Invité", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            Text("Non connecté", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     if (state.profile.email != null) {
@@ -218,9 +220,9 @@ fun ProfileScreen(
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                         ) {
-                            Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(14.dp))
+                            Icon(Icons.AutoMirrored.Rounded.Logout, null, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("DÃ©connecter", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Déconnecter", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     } else {
                         // Not connected â†’ show login button
@@ -357,21 +359,10 @@ fun ProfileScreen(
                         color = TextSecondary
                     )
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("fr" to "\uD83C\uDDEB\uD83C\uDDF7 Fran\u00e7ais", "en" to "\uD83C\uDDEC\uD83C\uDDE7 English")
-                            .forEach { (code, label) ->
-                                val sel = code == language
-                                FilterChip(
-                                    selected = sel,
-                                    onClick = { language = code },
-                                    label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = ElectricBlueAlpha15,
-                                        selectedLabelColor = ElectricBlueLight
-                                    )
-                                )
-                            }
-                    }
+                    LanguageDropdown(
+                        selectedCode = language,
+                        onLanguageSelected = { language = it }
+                    )
 
                     Spacer(Modifier.height(12.dp))
 
@@ -441,7 +432,7 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("ðŸŒ", fontSize = 20.sp)
+                        Text("🌐", fontSize = 20.sp)
                         Spacer(Modifier.width(10.dp))
                         Text(
                             text = "Langue de l'application / Language",
@@ -451,61 +442,20 @@ fun ProfileScreen(
                         )
                     }
                     Spacer(Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val currentLang = state.profile.preferredLanguage
-                        // French Button
-                        val isFr = currentLang.equals("fr", ignoreCase = true)
-                        Button(
-                            onClick = {
-                                viewModel.saveProfile(
-                                    name = state.profile.name,
-                                    weightKg = state.profile.weightKg,
-                                    heightCm = state.profile.heightCm,
-                                    objective = state.profile.objectiveType,
-                                    language = "fr",
-                                    notificationsEnabled = state.profile.notificationsEnabled
-                                )
-                                LanguageHelper.setAppLanguage(context, "fr")
-                            },
-                            modifier = Modifier.weight(1f).height(44.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isFr) NeonGreen else DarkSurfaceVariant,
-                                contentColor = if (isFr) Color.Black else TextPrimary
-                            ),
-                            border = if (isFr) null else BorderStroke(1.dp, DarkOutline)
-                        ) {
-                            Text("ðŸ‡«ðŸ‡· FranÃ§ais", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    LanguageDropdown(
+                        selectedCode = state.profile.preferredLanguage,
+                        onLanguageSelected = { selectedLanguage ->
+                            viewModel.saveProfile(
+                                name = state.profile.name,
+                                weightKg = state.profile.weightKg,
+                                heightCm = state.profile.heightCm,
+                                objective = state.profile.objectiveType,
+                                language = selectedLanguage,
+                                notificationsEnabled = state.profile.notificationsEnabled
+                            )
+                            LanguageHelper.setAppLanguage(context, selectedLanguage)
                         }
-
-                        // English Button
-                        val isEn = currentLang.equals("en", ignoreCase = true)
-                        Button(
-                            onClick = {
-                                viewModel.saveProfile(
-                                    name = state.profile.name,
-                                    weightKg = state.profile.weightKg,
-                                    heightCm = state.profile.heightCm,
-                                    objective = state.profile.objectiveType,
-                                    language = "en",
-                                    notificationsEnabled = state.profile.notificationsEnabled
-                                )
-                                LanguageHelper.setAppLanguage(context, "en")
-                            },
-                            modifier = Modifier.weight(1f).height(44.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isEn) NeonGreen else DarkSurfaceVariant,
-                                contentColor = if (isEn) Color.Black else TextPrimary
-                            ),
-                            border = if (isEn) null else BorderStroke(1.dp, DarkOutline)
-                        ) {
-                            Text("ðŸ‡¬ðŸ‡§ English", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
-                    }
+                    )
                 }
             }
 
@@ -530,7 +480,7 @@ fun ProfileScreen(
                         modifier = Modifier.size(44.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("ðŸ†", fontSize = 22.sp)
+                            Text("🏆", fontSize = 22.sp)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
@@ -542,7 +492,7 @@ fun ProfileScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            "${state.unlockedCount} dÃ©bloquÃ©(s) sur ${state.achievements.size}",
+                            "${state.unlockedCount} débloqué(s) sur ${state.achievements.size}",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -553,6 +503,59 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(12.dp))
 
+        }
+    }
+}
+
+@Composable
+private fun LanguageDropdown(
+    selectedCode: String,
+    onLanguageSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLanguage = LanguageHelper.supportedLanguages.firstOrNull {
+        it.code.equals(selectedCode, ignoreCase = true)
+    } ?: LanguageHelper.supportedLanguages.first()
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, DarkOutline),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+        ) {
+            Text(
+                text = "${selectedLanguage.flag} ${selectedLanguage.name}",
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Start,
+                color = TextPrimary
+            )
+            Icon(Icons.Rounded.ExpandMore, contentDescription = "Choisir une langue", tint = TextSecondary)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(DarkSurface)
+        ) {
+            LanguageHelper.supportedLanguages.forEach { language ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "${language.flag} ${language.name}",
+                            color = if (language.code.equals(selectedLanguage.code, ignoreCase = true)) NeonGreen else TextPrimary
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onLanguageSelected(language.code)
+                    },
+                    trailingIcon = if (language.code.equals(selectedLanguage.code, ignoreCase = true)) {
+                        { Icon(Icons.Rounded.Check, contentDescription = null, tint = NeonGreen) }
+                    } else null
+                )
+            }
         }
     }
 }
@@ -627,7 +630,7 @@ private fun AuthAccountDialog(
         containerColor = DarkSurface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("âœ‰ï¸ Compte & Synchronisation", style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
+                Text("✉️ Compte & Synchronisation", style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -638,7 +641,7 @@ private fun AuthAccountDialog(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
-                    "Connectez-vous avec votre adresse email pour sauvegarder vos sÃ©ances, votre programme Coach IA et votre nutrition par profil.",
+                    "Connectez-vous avec votre adresse email pour sauvegarder vos séances, votre programme Coach IA et votre nutrition par profil.",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -678,7 +681,7 @@ private fun AuthAccountDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = NeonGreen, contentColor = Color.Black)
                 ) {
-                    Icon(Icons.Rounded.Login, null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.AutoMirrored.Rounded.Login, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Se connecter / Enregistrer ce compte", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
@@ -686,7 +689,7 @@ private fun AuthAccountDialog(
                 // 3. Saved accounts list
                 if (state.savedAccounts.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
-                    Text("Comptes enregistrÃ©s sur cet appareil", style = MaterialTheme.typography.labelMedium, color = ElectricBlueLight, fontWeight = FontWeight.SemiBold)
+                    Text("Comptes enregistrés sur cet appareil", style = MaterialTheme.typography.labelMedium, color = ElectricBlueLight, fontWeight = FontWeight.SemiBold)
 
                     state.savedAccounts.forEach { acc ->
                         val isCurrent = acc.email.equals(state.profile.email, ignoreCase = true)
@@ -710,7 +713,7 @@ private fun AuthAccountDialog(
                                     modifier = Modifier.size(32.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
-                                        Text(if (isCurrent) "âœ…" else "ðŸ‘¤", fontSize = 14.sp)
+                                        Text(if (isCurrent) "✅" else "👤", fontSize = 14.sp)
                                     }
                                 }
                                 Spacer(Modifier.width(10.dp))
@@ -753,9 +756,9 @@ private fun AuthAccountDialog(
                         border = BorderStroke(1.dp, ErrorRed.copy(alpha = 0.5f)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed)
                     ) {
-                        Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.AutoMirrored.Rounded.Logout, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Se dÃ©connecter (Mode InvitÃ©)", fontSize = 12.sp)
+                        Text("Se déconnecter (Mode Invité)", fontSize = 12.sp)
                     }
                 }
             }

@@ -3,7 +3,7 @@ package com.phoenix.fitpro.presentation.ui.nutrition
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.phoenix.fitpro.domain.ai.ChatMessage
-import com.phoenix.fitpro.domain.ai.GeminiAiService
+import com.phoenix.fitpro.domain.ai.AiService
 import com.phoenix.fitpro.domain.model.*
 import com.phoenix.fitpro.domain.repository.NutritionRepository
 import com.phoenix.fitpro.domain.repository.UserRepository
@@ -148,7 +148,7 @@ Réponds UNIQUEMENT sur une seule ligne au format strict suivant :
 Calories | Protéines(g) | Glucides(g) | Lipides(g) | Portion
 Exemple : 450 | 28 | 45 | 18 | 1 assiette (350g)
 """
-                val res = GeminiAiService.generate(prompt)
+                val res = AiService.generate(prompt)
                 val parts = res.split("|").map { it.trim() }
                 if (parts.size >= 4) {
                     val cal = parts[0].filter { it.isDigit() }.toIntOrNull() ?: 350
@@ -282,7 +282,7 @@ Tu es un expert en nutrition sportive, bienveillant, précis et motivant.
 """
 
             val reply = try {
-                GeminiAiService.ask(text, context)
+                AiService.ask(text, context)
             } catch (e: Exception) {
                 "Pour aujourd'hui tu as consommé **$totalCal kcal** et **${totalProt}g de protéines**. N'hésite pas à équilibrer avec des légumes et une bonne hydratation !"
             }

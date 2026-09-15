@@ -35,6 +35,7 @@ abstract class PhoenixDatabase : RoomDatabase() {
     abstract fun workoutSessionDao(): WorkoutSessionDao
     abstract fun mealEntryDao(): MealEntryDao
     abstract fun achievementDao(): AchievementDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
         private const val DATABASE_NAME = "phoenix.db"
@@ -50,7 +51,7 @@ abstract class PhoenixDatabase : RoomDatabase() {
                     DATABASE_NAME
                 )
                     .addCallback(DatabaseCallback())
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
                     .also { INSTANCE = it }
             }

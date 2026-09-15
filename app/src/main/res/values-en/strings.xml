@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Phoenix</string>
+    <string name="app_name">Phoenix Fit</string>
     <string name="app_tagline">Rise stronger than ever</string>
     <string name="nav_home">Home</string>
     <string name="nav_workout">Workout</string>

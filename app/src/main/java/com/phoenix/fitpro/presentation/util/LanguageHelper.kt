@@ -12,8 +12,24 @@ import java.util.Locale
 
 object LanguageHelper {
 
+    val supportedLanguages = listOf(
+        AppLanguage("en", "English", "🇬🇧"),
+        AppLanguage("zh", "中文", "🇨🇳"),
+        AppLanguage("hi", "हिन्दी", "🇮🇳"),
+        AppLanguage("es", "Español", "🇪🇸"),
+        AppLanguage("fr", "Français", "🇫🇷"),
+        AppLanguage("ar", "العربية", "🇸🇦"),
+        AppLanguage("pt", "Português", "🇧🇷"),
+        AppLanguage("ru", "Русский", "🇷🇺"),
+        AppLanguage("ja", "日本語", "🇯🇵"),
+        AppLanguage("de", "Deutsch", "🇩🇪")
+    )
+
     fun setAppLanguage(context: Context, languageCode: String, restartActivity: Boolean = true) {
-        val targetLang = if (languageCode.equals("en", ignoreCase = true)) "en" else "fr"
+        val targetLang = supportedLanguages
+            .firstOrNull { it.code.equals(languageCode, ignoreCase = true) }
+            ?.code
+            ?: "fr"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val localeManager = context.getSystemService(LocaleManager::class.java)
@@ -61,3 +77,9 @@ object LanguageHelper {
         }
     }
 }
+
+data class AppLanguage(
+    val code: String,
+    val name: String,
+    val flag: String
+)
