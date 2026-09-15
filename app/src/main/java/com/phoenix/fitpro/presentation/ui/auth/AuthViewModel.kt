@@ -34,7 +34,7 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
 
     init {
-        // Une connexion Google revient par lien profond, sans repasser par le
+        // Une connexion par lien revient par lien profond, sans repasser par le
         // formulaire : on materialise alors le profil local correspondant.
         backend.sessionStatusFlow()?.let { statuses ->
             viewModelScope.launch {
@@ -57,14 +57,23 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    fun signInWithGoogle() {
+    fun sendMagicLink() {
+        val email = _uiState.value.email
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = authRepo.signInWithGoogle()
-            // Un message vide signale que le navigateur s'est ouvert : la session
-            // arrivera par lien profond, il n'y a pas d'erreur a afficher.
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, infoMessage = null) }
+            val result = authRepo.sendMagicLink(email)
+            // Un message vide signale l'envoi reussi : il n'y a pas encore de
+            // session, elle arrivera quand l'utilisateur ouvrira le lien.
             val message = (result as? AuthResult.Failure)?.message?.takeIf { it.isNotBlank() }
-            _uiState.update { it.copy(isLoading = message == null, errorMessage = message) }
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    errorMessage = message,
+                    infoMessage = if (message == null) {
+                        "Lien envoyé à $email. Ouvre-le depuis ce téléphone."
+                    } else null
+                )
+            }
         }
     }
 

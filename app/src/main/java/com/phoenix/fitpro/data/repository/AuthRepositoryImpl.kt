@@ -130,16 +130,17 @@ class AuthRepositoryImpl @Inject constructor(
         return AuthResult.Success(signInWithEmail(cleanEmail, null))
     }
 
-    override suspend fun signInWithGoogle(): AuthResult {
+    override suspend fun sendMagicLink(email: String): AuthResult {
+        val cleanEmail = email.trim().lowercase()
+        validateEmail(cleanEmail)?.let { return AuthResult.Failure(it) }
         if (!backend.isConfigured) {
-            return AuthResult.Failure("La connexion Google nécessite la synchronisation cloud.")
+            return AuthResult.Failure("La connexion par lien nécessite la synchronisation cloud.")
         }
-        val launched = backend.signInWithGoogle()
-        return if (launched.isSuccess) {
-            // La session n'existe pas encore : elle arrivera par lien profond.
-            AuthResult.Failure("")
+        val sent = backend.sendMagicLink(cleanEmail)
+        return if (sent.isSuccess) {
+            AuthResult.Failure("")  // succès sans session : le lien vient d'être envoyé
         } else {
-            AuthResult.Failure(translate(launched.exceptionOrNull()))
+            AuthResult.Failure(translate(sent.exceptionOrNull()))
         }
     }
 

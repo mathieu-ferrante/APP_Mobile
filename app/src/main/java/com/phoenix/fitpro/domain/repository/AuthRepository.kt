@@ -37,10 +37,10 @@ interface AuthRepository {
     suspend fun sendPasswordReset(email: String): AuthResult
 
     /**
-     * Ouvre la connexion Google. Rend la main immédiatement : le navigateur
-     * s'ouvre et la session revient par lien profond, d'où [completeOAuthSession].
+     * Envoie un lien de connexion à cette adresse. Aucun mot de passe requis :
+     * la session arrive par lien profond, d'où [completeOAuthSession].
      */
-    suspend fun signInWithGoogle(): AuthResult
+    suspend fun sendMagicLink(email: String): AuthResult
 
     /**
      * À appeler quand une session Supabase apparaît sans passer par le

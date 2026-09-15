@@ -33,8 +33,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Retour de la connexion Google. A declarer a l'identique dans
-                 Supabase > Authentication > URL Configuration > Redirect URLs. -->
+            <!-- Retour du lien de connexion envoye par email. A declarer a l'identique
+                 dans Supabase > Authentication > URL Configuration > Redirect URLs. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

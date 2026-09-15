@@ -139,8 +139,8 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
             }
         }
 
-        // Connexion Google : disponible seulement si la synchronisation cloud est
-        // configuree, puisqu'elle passe par Supabase.
+        // Connexion par lien envoye par email : aucun mot de passe, et aucun
+        // compte developpeur tiers a creer contrairement a un fournisseur OAuth.
         if (viewModel.isCloudEnabled) {
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -154,11 +154,11 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
             }
             Spacer(Modifier.height(12.dp))
             OutlinedButton(
-                onClick = viewModel::signInWithGoogle,
-                enabled = !state.isLoading,
+                onClick = viewModel::sendMagicLink,
+                enabled = !state.isLoading && state.email.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Continuer avec Google")
+                Text("Recevoir un lien de connexion par email")
             }
         }
 

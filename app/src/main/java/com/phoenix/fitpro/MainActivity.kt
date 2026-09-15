@@ -44,8 +44,8 @@ class MainActivity : ComponentActivity() {
         // ce choix sur les versions ou il n'est pas reporte dans la configuration.
         Locale.setDefault(Locale(LanguageHelper.getCurrentLanguage(this)))
 
-        // Retour de connexion Google : c'est supabase-kt qui extrait la session
-        // du lien profond, encore faut-il le lui transmettre.
+        // Retour du lien de connexion envoye par email : c'est supabase-kt qui
+        // extrait la session du lien profond, encore faut-il le lui transmettre.
         supabaseBackend.client?.handleDeeplinks(intent)
 
         setContent {

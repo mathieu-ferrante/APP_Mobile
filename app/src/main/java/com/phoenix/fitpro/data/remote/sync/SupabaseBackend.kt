@@ -4,8 +4,8 @@ import com.phoenix.fitpro.BuildConfig
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.OTP
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonPrimitive
@@ -80,19 +80,24 @@ class SupabaseBackend @Inject constructor() {
     }
 
     /**
-     * Lance la connexion Google. La methode rend la main immediatement : le
-     * navigateur s'ouvre, et la session arrive ensuite par le lien profond que
-     * MainActivity transmet a handleDeeplinks.
+     * Envoie un lien de connexion par email.
+     *
+     * Retenu plutot qu'un fournisseur OAuth : Google, GitHub ou Apple exigent
+     * tous un compte developpeur avec une adresse de contact. Le lien magique
+     * est gere nativement par Supabase, sans console tierce ni mot de passe.
+     * La session revient par le meme lien profond que l'OAuth.
      */
-    suspend fun signInWithGoogle(): Result<Unit> = runCatching {
+    suspend fun sendMagicLink(email: String): Result<Unit> = runCatching {
         val supabase = client ?: error(NOT_CONFIGURED)
-        supabase.auth.signInWith(Google)
+        supabase.auth.signInWith(OTP) {
+            this.email = email
+        }
     }
 
     /** Etat de session, pour reagir au retour d'une connexion OAuth. */
     fun sessionStatusFlow(): Flow<SessionStatus>? = client?.auth?.sessionStatus
 
-    /** Nom affichable fourni par le fournisseur OAuth, quand il en donne un. */
+    /** Nom affichable fourni par le fournisseur, quand il en donne un. */
     fun currentUserDisplayName(): String? {
         val meta = client?.auth?.currentUserOrNull()?.userMetadata ?: return null
         return listOf("full_name", "name").firstNotNullOfOrNull { key ->
