@@ -11,7 +11,9 @@
 //   AI_MODEL_PRECISE  modele des taches courtes ou la justesse compte
 //                     (estimation nutritionnelle). Defaut : AI_MODEL.
 //   AI_API_KEY    cle du fournisseur
-//   AI_DAILY_LIMIT nombre maximal d'appels par utilisateur et par jour (defaut 60)
+//   AI_DAILY_LIMIT nombre maximal d'appels par utilisateur et par jour
+//                  (defaut 250). Seuls les appels reellement servis comptent :
+//                  une requete rejetee ou un echec du fournisseur est rembourse.
 // Fournies automatiquement par Supabase :
 //   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
@@ -24,6 +26,7 @@ const CORS = {
 };
 
 const MAX_PROMPT_CHARS = 12_000;
+const DEFAULT_DAILY_LIMIT = 250;
 
 // Sur les modeles "flash", un token de sortie coute environ 5x un token d'entree.
 // Chaque tache recoit donc le plafond de sortie strictement necessaire, et le
@@ -132,28 +135,9 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user;
   if (userError || !user) return json({ error: "Session invalide" }, 401);
 
-  // ── 2. Quota journalier par utilisateur ───────────────────────────────────
-  const dailyLimit = Number(Deno.env.get("AI_DAILY_LIMIT") ?? "60");
-  const adminClient = createClient(
-    supabaseUrl,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { persistSession: false } },
-  );
-
-  const { data: allowed, error: quotaError } = await adminClient.rpc(
-    "ai_consume_quota",
-    { p_user: user.id, p_limit: dailyLimit },
-  );
-  if (quotaError) {
-    console.error("quota", quotaError);
-  } else if (allowed === false) {
-    return json(
-      { error: `Quota IA atteint (${dailyLimit} requetes par jour). Reessaie demain.` },
-      429,
-    );
-  }
-
-  // ── 3. Relai vers le fournisseur ──────────────────────────────────────────
+  // ── 2. Requete : tout ce qui peut etre refuse l'est avant le decompte ─────
+  // Une requete que l'on rejette ne doit rien couter, sinon une session de
+  // tests epuise le quota du jour sans qu'un seul appel ait atteint l'IA.
   let body: AskBody;
   try {
     body = await req.json();
@@ -180,15 +164,55 @@ Deno.serve(async (req: Request) => {
   const apiKey = Deno.env.get("AI_API_KEY");
   if (!apiKey) return json({ error: "Fournisseur IA non configure" }, 500);
 
+  // ── 3. Quota journalier par utilisateur ───────────────────────────────────
+  const configuredLimit = Number(Deno.env.get("AI_DAILY_LIMIT"));
+  const dailyLimit = Number.isFinite(configuredLimit) && configuredLimit > 0
+    ? Math.floor(configuredLimit)
+    : DEFAULT_DAILY_LIMIT;
+  const adminClient = createClient(
+    supabaseUrl,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false } },
+  );
+
+  const { data: allowed, error: quotaError } = await adminClient.rpc(
+    "ai_consume_quota",
+    { p_user: user.id, p_limit: dailyLimit },
+  );
+  // Un compteur en panne ne doit pas rendre le coach indisponible : il protege
+  // le budget, il n'est pas une brique du service.
+  let consumed = !quotaError;
+  if (quotaError) {
+    console.error("quota", quotaError);
+  } else if (allowed === false) {
+    return json(
+      { error: `Quota IA atteint (${dailyLimit} requetes par jour). Reessaie demain.` },
+      429,
+    );
+  }
+
+  /** Un echec cote serveur ne doit pas etre facture a l'utilisateur. */
+  async function refund(): Promise<void> {
+    if (!consumed) return;
+    consumed = false;
+    const { error } = await adminClient.rpc("ai_refund_quota", { p_user: user!.id });
+    if (error) console.error("refund", error);
+  }
+
+  // ── 4. Relai vers le fournisseur ──────────────────────────────────────────
   try {
     const text = provider === "gemini"
       ? await callGemini(model, apiKey, systemPrompt, userPrompt, maxOutputTokens)
       : await callOpenAiCompatible(model, apiKey, systemPrompt, userPrompt, maxOutputTokens);
 
-    if (!text) return json({ error: "Reponse vide du fournisseur" }, 502);
+    if (!text) {
+      await refund();
+      return json({ error: "Reponse vide du fournisseur" }, 502);
+    }
     return json({ text });
   } catch (e) {
     console.error("provider", e);
+    await refund();
     return json({ error: (e as Error).message }, 502);
   }
 });

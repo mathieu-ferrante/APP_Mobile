@@ -48,6 +48,25 @@ revoke all on function public.ai_consume_quota(uuid, integer) from anon;
 revoke all on function public.ai_consume_quota(uuid, integer) from authenticated;
 grant execute on function public.ai_consume_quota(uuid, integer) to service_role;
 
+-- Rend un appel decompte mais jamais servi (fournisseur en erreur, reponse
+-- vide). Sans cela, une panne du fournisseur consomme le quota de la journee.
+create or replace function public.ai_refund_quota(p_user uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.ai_usage
+     set calls = greatest(calls - 1, 0)
+   where user_id = p_user
+     and day = (now() at time zone 'utc')::date;
+$$;
+
+revoke all on function public.ai_refund_quota(uuid) from public;
+revoke all on function public.ai_refund_quota(uuid) from anon;
+revoke all on function public.ai_refund_quota(uuid) from authenticated;
+grant execute on function public.ai_refund_quota(uuid) to service_role;
+
 -- Purge des compteurs de plus de 90 jours (optionnel, a appeler ponctuellement).
 create or replace function public.ai_usage_cleanup()
 returns void
